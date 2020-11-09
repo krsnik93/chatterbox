@@ -63,11 +63,7 @@ function Sidebar(props) {
     if (createdRoom) {
       getRooms(user.id);
     }
-  }, [createdRoom]);
-
-  const onSubmit = (event) => {
-    event.preventDefault();
-  };
+  }, [createdRoom, getRooms, user.id]);
 
   return (
     <Nav variant="pills" className="flex-column">
@@ -128,4 +124,4 @@ const mapStateToProps = (state) => ({
   createdRoom: state.roomReducer.createdRoom,
 });
 
-export default connect(mapStateToProps, { createRoom })(Sidebar);
+export default connect(mapStateToProps, { createRoom, getRooms })(Sidebar);

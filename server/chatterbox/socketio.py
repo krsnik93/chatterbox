@@ -1,4 +1,3 @@
-from flask import jsonify, make_response
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 from .database import session_scope

@@ -19,7 +19,6 @@ function LoginForm(props) {
 
   const onSubmit = (event) => {
     event.preventDefault();
-    const { loginUser, setTokens } = props;
     const { username, password } = state;
     loginUser(username, password);
   };

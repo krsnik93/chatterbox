@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
-import io from "socket.io-client";
+import { useParams } from "react-router-dom";
 import { connect } from "react-redux";
 
 import { getRooms } from "../redux/middleware/room";
-import { getMessages, appendMessage } from "../redux/middleware/message";
+import { getMessages } from "../redux/middleware/message";
 import styles from "./Room.module.css";
 
-const ENDPOINT = "http://127.0.0.1:5000";
 
 function Room(props) {
   const { roomId } = useParams();
@@ -17,20 +15,19 @@ function Room(props) {
     messages: allRoomMessages,
     getRooms,
     getMessages,
-    appendMessage
+    sockets
   } = props;
 
   const [room, setRoom] = useState(null);
-  const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     if (user && !rooms.length) {
-       console.log('get rooms');
-      getRooms(user.id);
+       getRooms(user.id);
     }
-  }, [user, rooms.length]);
+  }, [user, rooms.length, getRooms]);
 
   useEffect(() => {
     if (rooms.length > 0) {
@@ -46,14 +43,7 @@ function Room(props) {
         console.log('get messages');
         getMessages(user.id, room.id);
     }
-  }, [room]);
-
-  useEffect(() => {
-    if (room) {
-      const socket = io(ENDPOINT, { username: user.username, room: room.id });
-      setSocket(socket);
-    }
-  }, [room]);
+  }, [room, allRoomMessages, getMessages, user.id]);
 
   useEffect(() => {
     if (room && room.id in allRoomMessages){
@@ -62,42 +52,14 @@ function Room(props) {
   }, [room, allRoomMessages]);
 
   useEffect(() => {
-    if (socket) {
-      socket.on("connect", (data) => {
-        if (data !== undefined) {
-          console.log(data.data);
-        }
-        socket.emit("join", { username: user.username, room: room.id });
-      });
-
-      socket.on("join", (data) => {
-        if (data !== undefined) {
-          console.log(data.data);
-        }
-      });
-
-      socket.on("leave", (data) => {
-        if (data !== undefined) {
-          console.log(data.data);
-        }
-      });
-
-      socket.on("chat message", response => {
-        const {status_code, message} = response;
-        if (status_code === 200) {
-            appendMessage(message);
-        }
-        else {
-            console.error(message);
-        }
-      });
-
-      return () => socket.disconnect();
+    if (room && !socket){
+        setSocket(sockets[room.id]);
     }
-  }, [socket]);
+  }, [room, socket, sockets]);
 
   const onSubmit = (event) => {
     event.preventDefault();
+
     if (socket) {
       socket.emit("chat message", {
         room: room.id,
@@ -148,4 +110,4 @@ const mapStateToProps = (state) => ({
   messages: state.messageReducer.messages
 });
 
-export default connect(mapStateToProps, { getRooms, getMessages, appendMessage })(Room);
+export default connect(mapStateToProps, { getRooms, getMessages })(Room);

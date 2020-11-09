@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { useHistory } from "react-router-dom";
 import { connect } from "react-redux";
 
-import { api } from "../utils";
 import { signUpUser } from "../redux/middleware/user";
 
 function SignUpForm() {
-  const history = useHistory();
   const [state, setState] = useState({
     username: "",
     email: "",
