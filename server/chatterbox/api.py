@@ -24,7 +24,7 @@ def handle_unprocessable_entity(err):
         messages = exc.messages
     else:
         messages = ["Invalid request"]
-    return jsonify({"messages": messages}), 422
+    return jsonify(messages=messages), 422
 
 
 @api.resource('/auth/tokens')
@@ -35,15 +35,15 @@ class Tokens(Resource):
         if matching_user is None or not matching_user.check_password(
                 user['password']):
             return make_response(
-                jsonify({'message': 'Invalid email address or password.'}),
+                jsonify(message='Invalid email address or password.'),
                 404)
         access_token = create_access_token(matching_user.id, fresh=True)
         refresh_token = create_refresh_token(matching_user.id)
-        return make_response(jsonify({
-            'user': UserSchema().dump(matching_user),
-            'accessToken': access_token,
-            'refreshToken': refresh_token,
-        }), 200)
+        return make_response(jsonify(
+            user=UserSchema().dump(matching_user),
+            accessToken=access_token,
+            refreshToken=refresh_token,
+        ), 200)
 
 
 @api.resource('/auth/access_tokens')
@@ -53,9 +53,9 @@ class AccessTokens(Resource):
         current_user = get_jwt_identity()
         new_access_token = create_access_token(identity=current_user,
                                                fresh=True)
-        return make_response(jsonify({
-            'accessToken': new_access_token
-        }), 200)
+        return make_response(jsonify(
+            accessToken=new_access_token
+        ), 200)
 
 
 @api.resource('/users')
@@ -70,20 +70,19 @@ class Users(Resource):
             ).paginate(page, app.config['PAGINATION_PER_PAGE'], False).items
         else:
             users = db.session.query(User).all()
-        return make_response(jsonify({
-            'users': UserSchema(only=("username",), many=True).dump(users),
-            'page': page
-        }), 200)
+        return make_response(jsonify(
+            users=UserSchema(only=("username",), many=True).dump(users),
+            page=page
+        ), 200)
 
     @use_args(UserSchema())
     def post(self, args):
         user = User(**args)
         if User.query.filter_by(email=user.email).first() is not None:
-            return make_response(
-                jsonify(
-                    {'message': (
-                        'User with the provided email address already exists.'
-                    )}),
+            return make_response(jsonify(
+                message=(
+                    'User with the provided email address already exists.'
+                )),
                 404
             )
         # https://stackoverflow.com/a/38262440/2858258
@@ -95,11 +94,11 @@ class Users(Resource):
         with session_scope() as session:
             session.add(user)
         user = User.query.filter_by(email=user_email).first()
-        return make_response(jsonify({
-            'user': UserSchema().dump(user),
-            'accessToken': access_token,
-            'refreshToken': refresh_token,
-        }), 200)
+        return make_response(jsonify(
+            user=UserSchema().dump(user),
+            accessToken=access_token,
+            refreshToken=refresh_token,
+        ), 200)
 
 
 @api.resource('/users/<user_id>/rooms')
@@ -110,10 +109,10 @@ class Rooms(Resource):
         rooms = db.session.query(Room).join(Membership).filter(
             Membership.user_id == user_id
         ).paginate(page, app.config['PAGINATION_PER_PAGE'], False).items
-        return make_response(jsonify({
-            'rooms': RoomSchema(many=True).dump(rooms),
-            'page': page
-        }), 200)
+        return make_response(jsonify(
+            rooms=RoomSchema(many=True).dump(rooms),
+            page=page
+        ), 200)
 
     def post(self, user_id):
         args = request.json
@@ -123,9 +122,9 @@ class Rooms(Resource):
         if Room.query.filter_by(name=room.name).first() is not None:
             return make_response(
                 jsonify(
-                    {'message': (
+                    message=(
                         'Room with the provided name address already exists.'
-                    )}),
+                    )),
                 404
             )
 
@@ -134,9 +133,9 @@ class Rooms(Resource):
             session.add(room)
 
         room = Room.query.filter_by(name=room_name).first()
-        return make_response(jsonify({
-            'room': RoomSchema().dump(room)
-        }), 200)
+        return make_response(jsonify(
+            room=RoomSchema().dump(room)
+        ), 200)
 
 
 @api.resource('/users/<user_id>/rooms/<room_id>/memberships')
@@ -150,11 +149,10 @@ class Memberships(Resource):
     }, location="json")
     def post(self, args, user_id, room_id):
         if not Membership.query.filter_by(user_id=user_id, room_id=room_id).one_or_none():
-            return make_response(
-                jsonify(
-                    {'message': (
-                        'User must be a member of the room to add other users.'
-                    )}),
+            return make_response(jsonify(
+                message=(
+                    'User must be a member of the room to add other users.'
+                )),
                 403
             )
         usernames = args.get('usernames')
@@ -171,13 +169,9 @@ class Memberships(Resource):
 
         with session_scope() as session:
             session.add_all(memberships)
-        return make_response(
-            jsonify(
-                {'message': (
-                    'Memberships added.'
-                )}),
-            200
-        )
+        return make_response(jsonify(
+            message='Memberships added.'
+        ), 200)
 
 
 @api.resource('/users/<user_id>/rooms/<room_id>/messages')
@@ -188,21 +182,20 @@ class Messages(Resource):
         if not Membership.query.filter_by(
                 user_id=user_id, room_id=room_id
         ).one_or_none():
-            return make_response(
-                jsonify(
-                    {'message': (
-                        'User must be a member of the room to add other users.'
-                    )}),
+            return make_response(jsonify(
+                message=(
+                    'User must be a member of the room to add other users.'
+                )),
                 403
             )
         messages = Message.query.filter_by(
             room_id=room_id
         ).paginate(page, app.config['PAGINATION_PER_PAGE'], False).items
-        return make_response(jsonify({
-            'messages': MessageSchema(many=True).dump(messages),
-            'room_id': room_id,
-            'page': page
-        }), 200)
+        return make_response(jsonify(
+            messages=MessageSchema(many=True).dump(messages),
+            room_id=room_id,
+            page=page
+        ), 200)
 
     def post(self):
         pass

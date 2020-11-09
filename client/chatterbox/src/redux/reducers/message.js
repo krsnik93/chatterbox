@@ -1,7 +1,10 @@
 import {
   GET_MESSAGES_BEGIN,
   GET_MESSAGES_FAILURE,
-  GET_MESSAGES_SUCCESS
+  GET_MESSAGES_SUCCESS,
+  APPEND_MESSAGE_BEGIN,
+  APPEND_MESSAGE_FAILURE,
+  APPEND_MESSAGE_SUCCESS
 } from "../actions/message";
 
 const initialState = {
@@ -34,6 +37,28 @@ const messageReducer = (state = initialState, action) => {
         error: null,
       };
     case GET_MESSAGES_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload.error,
+      };
+    case APPEND_MESSAGE_BEGIN:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case APPEND_MESSAGE_SUCCESS:
+      return {
+        ...state,
+        messages: {
+            ...state.messages,
+            [action.payload.message.room_id]: state.messages[action.payload.message.room_id].concat(action.payload.message)
+        },
+        loading: false,
+        error: null,
+      };
+    case APPEND_MESSAGE_FAILURE:
       return {
         ...state,
         loading: false,

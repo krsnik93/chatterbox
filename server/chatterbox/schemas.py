@@ -1,3 +1,5 @@
+from marshmallow_sqlalchemy.fields import Nested
+
 from .models import User, Room, Membership, Message
 from .extensions import marshmallow
 
@@ -25,3 +27,5 @@ class MessageSchema(marshmallow.SQLAlchemyAutoSchema):
     class Meta:
         model = Message
         datetimeformat = '%Y-%m-%dT%H:%M:%S%z'
+        include_fk = True
+    sender = Nested(UserSchema, only=("username", "email"))

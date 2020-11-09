@@ -4,15 +4,22 @@ import io from "socket.io-client";
 import { connect } from "react-redux";
 
 import { getRooms } from "../redux/middleware/room";
-import { getMessages } from "../redux/middleware/message";
+import { getMessages, appendMessage } from "../redux/middleware/message";
 import styles from "./Room.module.css";
 
 const ENDPOINT = "http://127.0.0.1:5000";
 
 function Room(props) {
   const { roomId } = useParams();
-  const { user, rooms, messages: allRoomMessages, getRooms, getMessages } = props;
-  console.log(allRoomMessages);
+  const {
+    user,
+    rooms,
+    messages: allRoomMessages,
+    getRooms,
+    getMessages,
+    appendMessage
+  } = props;
+
   const [room, setRoom] = useState(null);
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
@@ -20,9 +27,10 @@ function Room(props) {
 
   useEffect(() => {
     if (user && !rooms.length) {
+       console.log('get rooms');
       getRooms(user.id);
     }
-  }, [user, rooms]);
+  }, [user, rooms.length]);
 
   useEffect(() => {
     if (rooms.length > 0) {
@@ -34,7 +42,8 @@ function Room(props) {
   }, [rooms, roomId]);
 
   useEffect(() => {
-    if (room) {
+    if (room && !(room.id in allRoomMessages)) {
+        console.log('get messages');
         getMessages(user.id, room.id);
     }
   }, [room]);
@@ -73,12 +82,14 @@ function Room(props) {
         }
       });
 
-      socket.on("chat message", (newMessage) => {
-        console.log(newMessage);
-        console.log("new message received");
-        console.log(messages);
-        console.log([...messages, newMessage]);
-        setMessages((messages) => messages.concat(newMessage));
+      socket.on("chat message", response => {
+        const {status_code, message} = response;
+        if (status_code === 200) {
+            appendMessage(message);
+        }
+        else {
+            console.error(message);
+        }
       });
 
       return () => socket.disconnect();
@@ -123,7 +134,7 @@ function Room(props) {
       </form>
       <div className={styles.messages}>
         {messages.map((message, index) => (
-          <div key={index}>{message.text}</div>
+          <div key={index}>{message.sender ? message.sender.username: ''}: {message.text} {message.sent_at}</div>
         ))}
       </div>
     </div>
@@ -137,4 +148,4 @@ const mapStateToProps = (state) => ({
   messages: state.messageReducer.messages
 });
 
-export default connect(mapStateToProps, { getRooms, getMessages })(Room);
+export default connect(mapStateToProps, { getRooms, getMessages, appendMessage })(Room);

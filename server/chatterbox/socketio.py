@@ -1,7 +1,9 @@
+from flask import jsonify, make_response
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 
 from .database import session_scope
 from .models import Message
+from .schemas import MessageSchema
 
 socketio = SocketIO(cors_allowed_origins='*')
 
@@ -54,5 +56,18 @@ def message(data):
     msg = Message(text=text, sender_id=sender_id, room_id=room)
     with session_scope() as session:
         session.add(msg)
+        session.flush()
 
-    emit('chat message', f"{username}: {text}", room=room)
+        msg_id = msg.id
+        response = {
+            'message': MessageSchema().dump(msg),
+            'status_code': 200
+        }
+
+    if not Message.query.filter_by(id=msg_id).one_or_none():
+        response = {
+            'message': 'Failed to insert message.',
+            'status_code': 403
+        }
+
+    emit('chat message', response, room=room)

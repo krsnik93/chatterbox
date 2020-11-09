@@ -2,18 +2,19 @@ import {
   getMessagesBegin,
   getMessagesFailure,
   getMessagesSuccess,
+  appendMessageBegin,
+  appendMessageFailure,
+  appendMessageSuccess,
 } from "../actions/message";
 
 import { api } from "../../utils";
 
 export function getMessages(userId, roomId) {
   return (dispatch) => {
-    console.log(0);
     dispatch(getMessagesBegin());
     return api
       .get(`/users/${userId}/rooms/${roomId}/messages`)
       .then((response) => {
-        console.log(1);
         const {data} = response;
         dispatch(getMessagesSuccess(data));
         return { data };
@@ -22,5 +23,17 @@ export function getMessages(userId, roomId) {
         console.log(error);
         dispatch(getMessagesFailure(error));
       });
+  };
+}
+
+export function appendMessage(message) {
+  return (dispatch) => {
+    dispatch(appendMessageBegin());
+    try {
+        dispatch(appendMessageSuccess(message));
+    }
+    catch(error){
+        dispatch(appendMessageFailure(error));
+    }
   };
 }
