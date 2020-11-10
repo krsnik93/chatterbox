@@ -18,46 +18,48 @@ const ENDPOINT = "http://127.0.0.1:5000";
 
 function Home(props) {
   const { user, rooms, tokens, getRooms, logoutUser, appendMessage, addRoom } = props;
+  const socket = io(ENDPOINT);
   let { path } = useRouteMatch();
 
-  const socket = io(ENDPOINT);
+  useEffect(() => {
+    socket.on("connect", (data) => {
+        if (data !== undefined) {
+          //console.log(data.data);
+        }
+      });
 
-  socket.on("connect", (data) => {
-    if (data !== undefined) {
-      //console.log(data.data);
-    }
-  });
+      socket.on("join", (data) => {
+        if (data !== undefined) {
+          //console.log(data.data);
+        }
+      });
 
-  socket.on("join", (data) => {
-    if (data !== undefined) {
-      //console.log(data.data);
-    }
-  });
+      socket.on("leave", (data) => {
+        if (data !== undefined) {
+          //console.log(data.data);
+        }
+      });
 
-  socket.on("leave", (data) => {
-    if (data !== undefined) {
-      //console.log(data.data);
-    }
-  });
+      socket.on("room event", (response) => {
+        const { status_code, message, room } = response;
+        if (status_code === 200) {
+            addRoom(room);
+        } else {
+          console.error(response);
+        }
+      });
 
-  socket.on("room event", (response) => {
-    console.log(response);
-    const { status_code, message, room } = response;
-    if (status_code === 200) {
-        addRoom(room);
-    } else {
-      console.error(response);
-    }
-  });
+      socket.on("message event", (response) => {
+        const { status_code, message } = response;
+        if (status_code === 200) {
+          appendMessage(message);
+        } else {
+          console.error(message);
+        }
+      });
 
-  socket.on("message event", (response) => {
-    const { status_code, message } = response;
-    if (status_code === 200) {
-      appendMessage(message);
-    } else {
-      console.error(message);
-    }
-  });
+      return () => socket.disconnect();
+  }, [])
 
   useEffect(() => {
     if (user) {

@@ -107,12 +107,13 @@ class Rooms(Resource):
     def get(self, user_id):
         from .app import app
         page = request.args.get('page', 1, type=int)
+
         rooms = db.session.query(Room).outerjoin(Message).join(
             Membership).filter(Membership.user_id == user_id).group_by(
-            Room.id).order_by(
-                func.max(Message.sent_at).desc().nullslast(),
-                Room.created_at.desc().nullslast()
-        ).paginate(page, app.config['PAGINATION_PER_PAGE'], False).items
+            Room.id).order_by(func.coalesce(func.max(Message.sent_at),
+                                            Room.created_at).desc()).paginate(
+            page, app.config['PAGINATION_PER_PAGE'], False).items
+
         return make_response(jsonify(
             rooms=RoomSchema(many=True).dump(rooms),
             page=page
