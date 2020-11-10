@@ -7,7 +7,7 @@ function LoginForm(props) {
   const { loginUser } = props;
   const [state, setState] = useState({
     username: "",
-    room: "",
+    password: "",
   });
 
   const onChange = (event) => {

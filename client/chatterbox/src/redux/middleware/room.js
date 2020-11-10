@@ -2,9 +2,9 @@ import {
   getRoomsBegin,
   getRoomsFailure,
   getRoomsSuccess,
-  createRoomBegin,
-  createRoomSuccess,
-  createRoomFailure,
+  addRoomBegin,
+  addRoomSuccess,
+  addRoomFailure,
 } from "../actions/room";
 import { createMemberships } from "../middleware/membership";
 
@@ -26,23 +26,13 @@ export function getRooms(userId) {
   };
 }
 
-export function createRoom(roomName, userId, usernames) {
+export function addRoom(room) {
   return (dispatch) => {
-    dispatch(createRoomBegin());
-    return api
-      .post(`/users/${userId}/rooms`, {
-        name: roomName,
-        created_by: userId,
-      })
-      .then((response) => {
-        const { room } = response.data;
-        if (usernames.length > 0) {
-          dispatch(createMemberships(userId, room.id, usernames));
-        }
-        dispatch(createRoomSuccess(room));
-      })
-      .catch((error) => {
-        dispatch(createRoomFailure(error));
-      });
+    dispatch(addRoomBegin());
+    try {
+      dispatch(addRoomSuccess(room));
+    } catch (error) {
+      dispatch(addRoomFailure(error));
+    }
   };
 }

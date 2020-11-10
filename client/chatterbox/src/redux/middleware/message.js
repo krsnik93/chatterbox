@@ -15,7 +15,7 @@ export function getMessages(userId, roomId) {
     return api
       .get(`/users/${userId}/rooms/${roomId}/messages`)
       .then((response) => {
-        const {data} = response;
+        const { data } = response;
         dispatch(getMessagesSuccess(data));
         return { data };
       })
@@ -30,10 +30,9 @@ export function appendMessage(message) {
   return (dispatch) => {
     dispatch(appendMessageBegin());
     try {
-        dispatch(appendMessageSuccess(message));
-    }
-    catch(error){
-        dispatch(appendMessageFailure(error));
+      dispatch(appendMessageSuccess(message));
+    } catch (error) {
+      dispatch(appendMessageFailure(error));
     }
   };
 }

@@ -9,7 +9,7 @@ export const getMessagesBegin = () => ({
   type: GET_MESSAGES_BEGIN,
 });
 
-export const getMessagesSuccess = ({messages, room_id, page}) => ({
+export const getMessagesSuccess = ({ messages, room_id, page }) => ({
   type: GET_MESSAGES_SUCCESS,
   payload: { messages, room_id, page },
 });

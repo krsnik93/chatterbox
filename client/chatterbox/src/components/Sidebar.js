@@ -8,10 +8,10 @@ import { LinkContainer } from "react-router-bootstrap";
 import { connect } from "react-redux";
 
 import { api } from "../utils";
-import { getRooms, createRoom } from "../redux/middleware/room";
+import { getRooms } from "../redux/middleware/room";
 
 function Sidebar(props) {
-  const { user, rooms, createdRoom, getRooms, createRoom } = props;
+  const { user, rooms, socket, createdRoom, getRooms } = props;
   const [showModal, setShowModal] = useState(false);
   const [roomName, setRoomName] = useState("");
   const [users, setUsers] = useState([]);
@@ -55,7 +55,11 @@ function Sidebar(props) {
   };
 
   const onCreate = (event) => {
-    createRoom(roomName, user.id, users.concat(user.username));
+    socket.emit("room event",{
+        roomName,
+        userId: user.id,
+        usernames: users.concat(user.username)
+    });
     setShowModal(false);
   };
 
@@ -124,4 +128,4 @@ const mapStateToProps = (state) => ({
   createdRoom: state.roomReducer.createdRoom,
 });
 
-export default connect(mapStateToProps, { createRoom, getRooms })(Sidebar);
+export default connect(mapStateToProps, { getRooms })(Sidebar);

@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify, make_response
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource, Api
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 fresh_jwt_required, get_jwt_identity,
                                 jwt_refresh_token_required)
+from sqlalchemy.sql.expression import func
 from webargs import fields
 from webargs.flaskparser import use_args
 
@@ -106,8 +107,11 @@ class Rooms(Resource):
     def get(self, user_id):
         from .app import app
         page = request.args.get('page', 1, type=int)
-        rooms = db.session.query(Room).join(Membership).filter(
-            Membership.user_id == user_id
+        rooms = db.session.query(Room).outerjoin(Message).join(
+            Membership).filter(Membership.user_id == user_id).group_by(
+            Room.id).order_by(
+                func.max(Message.sent_at).desc().nullslast(),
+                Room.created_at.desc().nullslast()
         ).paginate(page, app.config['PAGINATION_PER_PAGE'], False).items
         return make_response(jsonify(
             rooms=RoomSchema(many=True).dump(rooms),
@@ -125,17 +129,24 @@ class Rooms(Resource):
                     message=(
                         'Room with the provided name address already exists.'
                     )),
-                404
+                403
             )
 
-        room_name = room.name
+        if User.query.filter_by(username=room.name).one_or_none() is not None:
+            return make_response(
+                jsonify(
+                    message=(
+                        'Room name must not match another username.'
+                    )),
+                403
+            )
+
         with session_scope() as session:
             session.add(room)
+            session.flush()
+            serialized = RoomSchema().dump(room)
 
-        room = Room.query.filter_by(name=room_name).first()
-        return make_response(jsonify(
-            room=RoomSchema().dump(room)
-        ), 200)
+        return make_response(jsonify(room=serialized), 200)
 
 
 @api.resource('/users/<user_id>/rooms/<room_id>/memberships')
