@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { connect } from "react-redux";
 
 import { getRooms } from "../redux/middleware/room";
-import { getMessages, addMessageAndSetSeen } from "../redux/middleware/message";
+import { getMessages, addMessageAndSetSeen, setMessageSeen } from "../redux/middleware/message";
 import { setActiveRoomId } from "../redux/actions/tab";
 
 import styles from "./Room.module.css";
@@ -18,6 +18,7 @@ function Room(props) {
     getMessages,
     setActiveRoomId,
     addMessageAndSetSeen,
+    setMessageSeen,
     activeRoomId,
     socket,
     createdSocket
@@ -43,32 +44,16 @@ function Room(props) {
   }, [rooms, roomId]);
 
   useEffect(() => {
-    console.log("active room id changed: ", activeRoomId);
-    if (user && createdSocket) {
-      console.log("setting message listener");
-      socket.on("message event", (response) => {
-        const { status_code, message } = response;
-        const seenStatus = activeRoomId === message.room_id;
-        console.log(123, activeRoomId, message.room_id);
-        if (status_code === 200) {
-          addMessageAndSetSeen(user.id, message.room_id, seenStatus, message);
-        } else {
-          console.error(message);
-        }
-      });
-
-      return () => {
-        console.log("clearing message listener");
-        socket.removeAllListeners("message event");
-      };
-    }
-  }, [activeRoomId, createdSocket, socket, addMessageAndSetSeen, user]);
-
-  useEffect(() => {
     if (room) {
       setActiveRoomId(room.id);
     }
   }, [room]);
+
+  useEffect(() => {
+    if(room) {
+        setMessageSeen(user.id, room.id, [], true, true);
+    }
+  }, [room])
 
   useEffect(() => {
     if (room && !(room.id in allRoomMessages)) {
@@ -82,6 +67,27 @@ function Room(props) {
       setMessages(allRoomMessages[room.id]);
     }
   }, [room, allRoomMessages]);
+
+  useEffect(() => {
+    if (user && createdSocket) {
+      console.log("setting message listener");
+      socket.on("message event", (response) => {
+        const { status_code, message } = response;
+        const seenStatus = activeRoomId === message.room_id;
+
+        if (status_code === 200) {
+          addMessageAndSetSeen(user.id, message.room_id, message, seenStatus);
+        } else {
+          console.error(message);
+        }
+      });
+
+      return () => {
+        console.log("clearing message listener");
+        socket.removeAllListeners("message event");
+      };
+    }
+  }, [activeRoomId, createdSocket, socket, addMessageAndSetSeen, user]);
 
   const onSubmit = (event) => {
     event.preventDefault();
@@ -153,4 +159,5 @@ export default connect(mapStateToProps, {
   getMessages,
   setActiveRoomId,
   addMessageAndSetSeen,
+  setMessageSeen,
 })(Room);

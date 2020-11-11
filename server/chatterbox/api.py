@@ -216,15 +216,35 @@ class MessageSeens(Resource):
     def put(self, user_id, room_id):
         status = request.json.get('status')
         message_ids = request.json.get('messageIds')
+        set_all = request.json.get('all')
+
         if status is None:
             return make_response(jsonify(
                 message="Missing argument 'status'."
             ), 403)
 
-        seens = [
+        if set_all:
+            message_ids = [m.id for m in db.session.query(Message.id).filter_by(
+                room_id=room_id)]
+
+        existing_seens = db.session.query(MessageSeen).filter(
+            MessageSeen.user_id == user_id,
+            MessageSeen.message_id.in_(message_ids)
+        ).all()
+
+        for s in existing_seens:
+            s.status = True
+
+        new_message_ids = set(message_ids).difference(
+            set([s.message_id for s in existing_seens])
+        )
+
+        new_seens = [
             MessageSeen(user_id=user_id, message_id=message_id, status=status)
-            for message_id in message_ids
+            for message_id in new_message_ids
         ]
+
+        seens = existing_seens + new_seens
 
         with session_scope() as session:
             session.add_all(seens)

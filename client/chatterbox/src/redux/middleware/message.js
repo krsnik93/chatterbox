@@ -40,14 +40,16 @@ export function addMessage(message) {
   };
 }
 
-export function setMessageSeen(userId, roomId, status, messageIds) {
+export function setMessageSeen(userId, roomId, messageIds = [], status = true, all = false) {
   return (dispatch) => {
     dispatch(setMessageSeenBegin());
+
+    let args = {status}
+    if (all) args.all = true;
+    else args.messageIds = messageIds;
+
     return api
-      .put(`/users/${userId}/rooms/${roomId}/messages_seen`, {
-        messageIds,
-        status,
-      })
+      .put(`/users/${userId}/rooms/${roomId}/messages_seen`, args)
       .then((response) => {
         console.log(response);
         const { message, messages } = response.data;
@@ -64,9 +66,9 @@ export function setMessageSeen(userId, roomId, status, messageIds) {
   };
 }
 
-export function addMessageAndSetSeen(userId, roomId, status, message) {
+export function addMessageAndSetSeen(userId, roomId, message, status) {
   return (dispatch) => {
     dispatch(addMessage(message));
-    dispatch(setMessageSeen(userId, roomId, status, [message.id]));
+    dispatch(setMessageSeen(userId, roomId, [message.id], status));
   };
 }
