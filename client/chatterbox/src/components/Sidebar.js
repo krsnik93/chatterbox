@@ -55,10 +55,10 @@ function Sidebar(props) {
   };
 
   const onCreate = (event) => {
-    socket.emit("room event",{
-        roomName,
-        userId: user.id,
-        usernames: users.concat(user.username)
+    socket.emit("room event", {
+      roomName,
+      userId: user.id,
+      usernames: users.concat(user.username),
     });
     setShowModal(false);
   };

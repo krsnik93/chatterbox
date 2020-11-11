@@ -2,9 +2,12 @@ import {
   getMessagesBegin,
   getMessagesFailure,
   getMessagesSuccess,
-  appendMessageBegin,
-  appendMessageFailure,
-  appendMessageSuccess,
+  addMessageBegin,
+  addMessageFailure,
+  addMessageSuccess,
+  setMessageSeenBegin,
+  setMessageSeenFailure,
+  setMessageSeenSuccess,
 } from "../actions/message";
 
 import { api } from "../../utils";
@@ -26,13 +29,44 @@ export function getMessages(userId, roomId) {
   };
 }
 
-export function appendMessage(message) {
+export function addMessage(message) {
   return (dispatch) => {
-    dispatch(appendMessageBegin());
+    dispatch(addMessageBegin());
     try {
-      dispatch(appendMessageSuccess(message));
+      return dispatch(addMessageSuccess(message));
     } catch (error) {
-      dispatch(appendMessageFailure(error));
+      return dispatch(addMessageFailure(error));
     }
+  };
+}
+
+export function setMessageSeen(userId, roomId, status, messageIds) {
+  return (dispatch) => {
+    dispatch(setMessageSeenBegin());
+    return api
+      .put(`/users/${userId}/rooms/${roomId}/messages_seen`, {
+        messageIds,
+        status,
+      })
+      .then((response) => {
+        console.log(response);
+        const { message, messages } = response.data;
+        if (message) {
+          return dispatch(setMessageSeenFailure(message));
+        } else {
+          return dispatch(setMessageSeenSuccess(messages));
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        return dispatch(setMessageSeenFailure(error));
+      });
+  };
+}
+
+export function addMessageAndSetSeen(userId, roomId, status, message) {
+  return (dispatch) => {
+    dispatch(addMessage(message));
+    dispatch(setMessageSeen(userId, roomId, status, [message.id]));
   };
 }

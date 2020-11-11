@@ -1,5 +1,11 @@
-import React, { useEffect } from "react";
-import { Route, Switch, Redirect, useRouteMatch } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  Route,
+  Switch,
+  Redirect,
+  useRouteMatch,
+  useLocation,
+} from "react-router-dom";
 import { connect } from "react-redux";
 import Tab from "react-bootstrap/Tab";
 import Col from "react-bootstrap/Col";
@@ -9,22 +15,34 @@ import io from "socket.io-client";
 import Room from "./Room";
 import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
-import { appendMessage } from "../redux/middleware/message";
+import { addMessageAndSetSeen } from "../redux/middleware/message";
 import Sidebar from "../components/Sidebar";
 import { isUserLoggedIn } from "../utils";
 
 const ENDPOINT = "http://127.0.0.1:5000";
 
-
 function Home(props) {
-  const { user, rooms, tokens, getRooms, logoutUser, appendMessage, addRoom } = props;
-  const socket = io(ENDPOINT);
-  let { path } = useRouteMatch();
+  const {
+    user,
+    rooms,
+    tokens,
+    getRooms,
+    logoutUser,
+    addMessageAndSetSeen,
+    addRoom,
+  } = props;
+  const { path } = useRouteMatch();
+  const [socket, setSocket] = useState(null);
+  const [fetchedRooms, setFetchedRooms] = useState(false);
+  const [joinedRooms, setJoinedRooms] = useState(false);
+  const [createdSocket, setCreatedSocket] = useState(false);
 
   useEffect(() => {
-    socket.on("connect", (data) => {
+    if (!createdSocket) {
+      const socket = io(ENDPOINT);
+      socket.on("connect", (data) => {
         if (data !== undefined) {
-          //console.log(data.data);
+          console.log(data.data);
         }
       });
 
@@ -43,41 +61,35 @@ function Home(props) {
       socket.on("room event", (response) => {
         const { status_code, message, room } = response;
         if (status_code === 200) {
-            addRoom(room);
+          addRoom(room);
         } else {
           console.error(response);
         }
       });
 
-      socket.on("message event", (response) => {
-        const { status_code, message } = response;
-        if (status_code === 200) {
-          appendMessage(message);
-        } else {
-          console.error(message);
-        }
-      });
+      setSocket(socket);
+      setCreatedSocket(true);
 
       return () => socket.disconnect();
-  }, [])
+    }
+  }, []);
 
   useEffect(() => {
-    if (user) {
-      getRooms(user.id);
+    if (user.id) {
+      getRooms(user.id).then(() => setFetchedRooms(true));
     }
   }, [user, getRooms]);
 
   useEffect(() => {
-    if (user) {
-        socket.emit('join', {username: user.username, room: user.username});
+    if (socket && user && fetchedRooms && !joinedRooms) {
+      console.log(`Joining ${rooms.length} rooms.`);
+      for (const room of rooms) {
+        socket.emit("join", { username: user.username, room: room.id });
+      }
+      socket.emit("join", { username: user.username, room: user.username });
+      setJoinedRooms(true);
     }
-  }, [user])
-
-  useEffect(() => {
-    for (const room of rooms) {
-        socket.emit('join', {username: user.username, room: room.id});
-    }
-  }, [rooms])
+  }, [socket, user, rooms, fetchedRooms, joinedRooms]);
 
   if (!user || !isUserLoggedIn(tokens)) {
     logoutUser();
@@ -99,7 +111,10 @@ function Home(props) {
               </Route>
               <Route path={`${path}/rooms`}>
                 <Route path={`${path}/rooms/:roomId`}>
-                  <Room socket={socket} />
+                  <Room
+                    socket={socket}
+                    createdSocket={createdSocket}
+                  />
                 </Route>
               </Route>
               <Route path={`${path}/users`}>Users</Route>
@@ -115,11 +130,12 @@ const mapStateToProps = (state) => ({
   user: state.userReducer.user,
   tokens: state.userReducer.tokens,
   rooms: state.roomReducer.rooms,
+  activeRoomId: state.tabReducer.tab,
 });
 
 export default connect(mapStateToProps, {
   getRooms,
   logoutUser,
-  appendMessage,
+  addMessageAndSetSeen,
   addRoom,
 })(Home);

@@ -7,8 +7,8 @@ from sqlalchemy.sql.expression import func
 from webargs import fields
 from webargs.flaskparser import use_args
 
-from .schemas import UserSchema, RoomSchema, MembershipSchema, MessageSchema
-from .models import User, Room, Membership, Message
+from .schemas import UserSchema, RoomSchema, MessageSchema, MessageSeenSchema
+from .models import User, Room, Membership, Message, MessageSeen
 from .extensions import bcrypt
 from .database import db, session_scope
 
@@ -157,7 +157,7 @@ class Memberships(Resource):
 
     @use_args({
         "usernames": fields.List(fields.String()),
-        "users_ids": fields.List(fields.Int())
+        "user_ids": fields.List(fields.Int())
     }, location="json")
     def post(self, args, user_id, room_id):
         if not Membership.query.filter_by(user_id=user_id, room_id=room_id).one_or_none():
@@ -202,12 +202,41 @@ class Messages(Resource):
             )
         messages = Message.query.filter_by(
             room_id=room_id
-        ).paginate(page, app.config['PAGINATION_PER_PAGE'], False).items
+        ).order_by(Message.sent_at.desc()).paginate(
+            page, app.config['PAGINATION_PER_PAGE'], False).items
         return make_response(jsonify(
             messages=MessageSchema(many=True).dump(messages),
             room_id=room_id,
             page=page
         ), 200)
 
-    def post(self):
-        pass
+
+@api.resource('/users/<user_id>/rooms/<room_id>/messages_seen')
+class MessageSeens(Resource):
+    def put(self, user_id, room_id):
+        status = request.json.get('status')
+        message_ids = request.json.get('messageIds')
+        if status is None:
+            return make_response(jsonify(
+                message="Missing argument 'status'."
+            ), 403)
+
+        seens = [
+            MessageSeen(user_id=user_id, message_id=message_id, status=status)
+            for message_id in message_ids
+        ]
+
+        with session_scope() as session:
+            session.add_all(seens)
+            session.flush()
+            serialized_seens = MessageSeenSchema(many=True).dump(seens)
+
+        messages = Message.query.filter(
+            Message.id.in_([s['message_id'] for s in serialized_seens])
+        ).all()
+        serialized_messages = MessageSchema(many=True).dump(messages)
+
+        return make_response(jsonify(
+            seens=serialized_seens,
+            messages=serialized_messages,
+        ), 200)

@@ -2,9 +2,12 @@ import {
   GET_MESSAGES_BEGIN,
   GET_MESSAGES_FAILURE,
   GET_MESSAGES_SUCCESS,
-  APPEND_MESSAGE_BEGIN,
-  APPEND_MESSAGE_FAILURE,
-  APPEND_MESSAGE_SUCCESS,
+  ADD_MESSAGE_BEGIN,
+  ADD_MESSAGE_FAILURE,
+  ADD_MESSAGE_SUCCESS,
+  SET_MESSAGE_SEEN_BEGIN,
+  SET_MESSAGE_SEEN_FAILURE,
+  SET_MESSAGE_SEEN_SUCCESS,
 } from "../actions/message";
 
 const initialState = {
@@ -42,13 +45,13 @@ const messageReducer = (state = initialState, action) => {
         loading: false,
         error: action.payload.error,
       };
-    case APPEND_MESSAGE_BEGIN:
+    case ADD_MESSAGE_BEGIN:
       return {
         ...state,
         loading: true,
         error: null,
       };
-    case APPEND_MESSAGE_SUCCESS:
+    case ADD_MESSAGE_SUCCESS:
       return {
         ...state,
         messages: {
@@ -60,7 +63,46 @@ const messageReducer = (state = initialState, action) => {
         loading: false,
         error: null,
       };
-    case APPEND_MESSAGE_FAILURE:
+    case ADD_MESSAGE_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload.error,
+      };
+    case SET_MESSAGE_SEEN_BEGIN:
+      return {
+        ...state,
+        loading: true,
+        error: null,
+      };
+    case SET_MESSAGE_SEEN_SUCCESS:
+      const seenMessages = action.payload.messages;
+      const allMessages = state.messages;
+      const newMessages = Object.fromEntries(
+        Object.entries(allMessages).map(([roomId, messages]) => [
+          roomId,
+          messages.map((message) => {
+            const seenMessage = seenMessages.find(
+              (msg) => msg.id === message.id
+            );
+            if (seenMessage) {
+              return {
+                ...message,
+                seens: seenMessage.seens,
+              };
+            } else return message;
+          }),
+        ])
+      );
+
+      return {
+        ...state,
+        messages: newMessages,
+        loading: false,
+        error: null,
+      };
+
+    case SET_MESSAGE_SEEN_FAILURE:
       return {
         ...state,
         loading: false,

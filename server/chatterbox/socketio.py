@@ -6,17 +6,7 @@ from .models import User, Room, Message, Membership
 from .schemas import RoomSchema, MessageSchema
 
 Payload.max_decode_packets = 500
-socketio = SocketIO(cors_allowed_origins='*')
-
-
-@socketio.on('my event')
-def test_message(message):
-    emit('my response', {'data': message['data']})
-
-
-@socketio.on('my broadcast event')
-def test_message(message):
-    emit('my response', {'data': message['data']}, broadcast=True)
+socketio = SocketIO(cors_allowed_origins='*', logger=True)
 
 
 @socketio.on('connect')
@@ -91,7 +81,6 @@ def room_event(data):
 
 @socketio.on('message event')
 def message_event(data):
-    print('message event received')
     room = data['room']
     sender_id = data['sender_id']
     text = data['message']

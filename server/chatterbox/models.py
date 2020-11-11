@@ -51,13 +51,15 @@ class Message(db.Model):
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
     sent_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     sender = db.relationship("User")
+    seens = db.relationship("MessageSeen")
 
 
 class MessageSeen(db.Model):
     
     __tablename__ = 'message_seen'
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
-    seen_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'),
+                           primary_key=True)
+    status = db.Column(db.Boolean, nullable=False)
+    message = db.relationship("Message")

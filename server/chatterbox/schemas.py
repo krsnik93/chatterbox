@@ -1,6 +1,4 @@
-from marshmallow_sqlalchemy.fields import Nested
-
-from .models import User, Room, Membership, Message
+from .models import User, Room, Membership, Message, MessageSeen
 from .extensions import marshmallow
 
 
@@ -9,7 +7,6 @@ class UserSchema(marshmallow.SQLAlchemyAutoSchema):
         model = User
         load_only = ('password',)
         datetimeformat = '%Y-%m-%dT%H:%M:%S%z'
-    events = marshmallow.Nested('EventSchema', many=True, exclude=('user',))
 
 
 class RoomSchema(marshmallow.SQLAlchemyAutoSchema):
@@ -28,4 +25,12 @@ class MessageSchema(marshmallow.SQLAlchemyAutoSchema):
         model = Message
         datetimeformat = '%Y-%m-%dT%H:%M:%S%z'
         include_fk = True
-    sender = Nested(UserSchema, only=("username", "email"))
+    sender = marshmallow.Nested(UserSchema, only=("username", "email"))
+    seens = marshmallow.Nested("MessageSeenSchema", many=True)
+
+
+class MessageSeenSchema(marshmallow.SQLAlchemyAutoSchema):
+    class Meta:
+        model = MessageSeen
+        include_fk = True
+
