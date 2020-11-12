@@ -222,7 +222,8 @@ class Messages(Resource):
         ).filter(Message.room_id.in_(room_ids)).subquery()
 
         message_dicts = db.session.query(subquery.c.id).filter(
-            subquery.c.rank <= app.config['PAGINATION_PER_PAGE']).all()
+            subquery.c.rank <= app.config['PAGINATION_PER_PAGE']).order_by(
+            subquery.c.rank.desc()).all()
 
         message_ids = [id_ for (id_,) in message_dicts]
 

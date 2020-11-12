@@ -15,7 +15,7 @@ function Sidebar(props) {
   const [showModal, setShowModal] = useState(false);
   const [roomName, setRoomName] = useState("");
   const [users, setUsers] = useState([]);
-  const [unseenMessageCounts, setUnseenMessageCounts] = useState(null);
+  const [unseenMessageCounts, setUnseenMessageCounts] = useState({});
 
   const onClick = () => {
     setShowModal(true);
