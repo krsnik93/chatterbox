@@ -3,7 +3,7 @@ import {
   createMembershipsSuccess,
   createMembershipsFailure,
 } from "../actions/membership";
-import { api } from "../../utils";
+import { api } from "../../axios";
 
 export function createMemberships(userId, roomId, usernames) {
   return (dispatch) => {

@@ -1,9 +1,4 @@
-import axios from "axios";
 import jwt from "jsonwebtoken";
-
-export const api = axios.create({
-  baseURL: "http://localhost:5000",
-});
 
 export const hasTokenExpired = (accessToken) => {
   const decoded = jwt.decode(accessToken, { complete: true });

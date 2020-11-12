@@ -8,7 +8,7 @@ import {
 } from "../actions/room";
 import { createMemberships } from "../middleware/membership";
 
-import { api } from "../../utils";
+import { api } from "../../axios";
 
 export function getRooms(userId) {
   return (dispatch) => {

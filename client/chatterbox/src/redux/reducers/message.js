@@ -34,9 +34,12 @@ const messageReducer = (state = initialState, action) => {
         },
         pages: {
           ...state.pages,
-          ...Object.fromEntries(Object.entries(action.payload.messages).map(
-            ([roomId, msgs]) => [roomId, action.payload.page])
-          )
+          ...Object.fromEntries(
+            Object.entries(action.payload.messages).map(([roomId, msgs]) => [
+              roomId,
+              action.payload.page,
+            ])
+          ),
         },
         loading: false,
         error: null,

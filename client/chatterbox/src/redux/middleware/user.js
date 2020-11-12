@@ -4,7 +4,7 @@ import {
   authUserSuccess,
 } from "../actions/user";
 
-import { api } from "../../utils";
+import { api } from "../../axios";
 
 export function loginUser(username, password) {
   return (dispatch) => {

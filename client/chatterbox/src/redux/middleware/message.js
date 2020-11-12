@@ -10,17 +10,16 @@ import {
   setMessageSeenSuccess,
 } from "../actions/message";
 
-import { api } from "../../utils";
-import queryString from 'query-string';
-
+import { api } from "../../axios";
+import queryString from "query-string";
 
 export function getMessages(userId, roomIds) {
   return (dispatch) => {
     dispatch(getMessagesBegin());
 
     const queryStr = queryString.stringify(
-        {room_ids: roomIds},
-        {arrayFormat: 'none'}
+      { room_ids: roomIds },
+      { arrayFormat: "none" }
     );
 
     return api
@@ -48,18 +47,23 @@ export function addMessage(message) {
   };
 }
 
-export function setMessageSeen(userId, roomId, messageIds = [], status = true, all = false) {
+export function setMessageSeen(
+  userId,
+  roomId,
+  messageIds = [],
+  status = true,
+  all = false
+) {
   return (dispatch) => {
     dispatch(setMessageSeenBegin());
 
-    let args = {status}
+    let args = { status };
     if (all) args.all = true;
     else args.messageIds = messageIds;
 
     return api
       .put(`/users/${userId}/rooms/${roomId}/messages_seen`, args)
       .then((response) => {
-        console.log(response);
         const { message, messages } = response.data;
         if (message) {
           return dispatch(setMessageSeenFailure(message));

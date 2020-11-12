@@ -8,8 +8,9 @@ import { isUserLoggedIn } from "../utils";
 
 function Login(props) {
   const { user, tokens } = props;
+
   if (user && isUserLoggedIn(tokens)) {
-    return <Redirect to="/home" />;
+    return (<Redirect to="/home" />);
   }
 
   return (

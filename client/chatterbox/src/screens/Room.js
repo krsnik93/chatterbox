@@ -3,7 +3,11 @@ import { useParams } from "react-router-dom";
 import { connect } from "react-redux";
 
 import { getRooms } from "../redux/middleware/room";
-import { getMessages, addMessageAndSetSeen, setMessageSeen } from "../redux/middleware/message";
+import {
+  getMessages,
+  addMessageAndSetSeen,
+  setMessageSeen,
+} from "../redux/middleware/message";
 import { setActiveRoomId } from "../redux/actions/tab";
 
 import styles from "./Room.module.css";
@@ -21,7 +25,7 @@ function Room(props) {
     setMessageSeen,
     activeRoomId,
     socket,
-    createdSocket
+    createdSocket,
   } = props;
 
   const [room, setRoom] = useState(null);
@@ -50,10 +54,10 @@ function Room(props) {
   }, [room]);
 
   useEffect(() => {
-    if(room) {
-        setMessageSeen(user.id, room.id, [], true, true);
+    if (room) {
+      setMessageSeen(user.id, room.id, [], true, true);
     }
-  }, [room])
+  }, [room]);
 
   useEffect(() => {
     if (room && !(room.id in allRoomMessages)) {
@@ -70,7 +74,6 @@ function Room(props) {
 
   useEffect(() => {
     if (user && createdSocket) {
-      console.log("setting message listener");
       socket.on("message event", (response) => {
         const { status_code, message } = response;
         const seenStatus = activeRoomId === message.room_id;
@@ -83,7 +86,6 @@ function Room(props) {
       });
 
       return () => {
-        console.log("clearing message listener");
         socket.removeAllListeners("message event");
       };
     }

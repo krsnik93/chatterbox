@@ -2,7 +2,7 @@ from collections import defaultdict
 from flask import Blueprint, request, jsonify, make_response
 from flask_restful import Resource, Api
 from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                fresh_jwt_required, get_jwt_identity,
+                                jwt_required, get_jwt_identity,
                                 jwt_refresh_token_required)
 from sqlalchemy.sql.expression import func, case
 from webargs import fields
@@ -10,7 +10,7 @@ from webargs.flaskparser import use_args
 
 from .schemas import UserSchema, RoomSchema, MessageSchema, MessageSeenSchema
 from .models import User, Room, Membership, Message, MessageSeen
-from .extensions import bcrypt
+from .extensions import bcrypt, jwt
 from .database import db, session_scope
 
 api_blueprint = Blueprint('api', __name__)
@@ -29,6 +29,14 @@ def handle_unprocessable_entity(err):
     return jsonify(messages=messages), 422
 
 
+@jwt.expired_token_loader
+def my_expired_token_callback(expired_token):
+    token_type = expired_token['type']
+    return jsonify({
+        'msg': 'The {} token has expired'.format(token_type)
+    }), 401
+
+
 @api.resource('/auth/tokens')
 class Tokens(Resource):
     @use_args(UserSchema(only=('username', 'password')))
@@ -39,7 +47,7 @@ class Tokens(Resource):
             return make_response(
                 jsonify(message='Invalid email address or password.'),
                 404)
-        access_token = create_access_token(matching_user.id, fresh=True)
+        access_token = create_access_token(matching_user.id)
         refresh_token = create_refresh_token(matching_user.id)
         return make_response(jsonify(
             user=UserSchema().dump(matching_user),
@@ -53,8 +61,7 @@ class AccessTokens(Resource):
     @jwt_refresh_token_required
     def post(self):
         current_user = get_jwt_identity()
-        new_access_token = create_access_token(identity=current_user,
-                                               fresh=True)
+        new_access_token = create_access_token(identity=current_user)
         return make_response(jsonify(
             accessToken=new_access_token
         ), 200)
@@ -62,6 +69,7 @@ class AccessTokens(Resource):
 
 @api.resource('/users')
 class Users(Resource):
+    @jwt_required
     def get(self):
         from .app import app
         page = request.args.get('page', 1, type=int)
@@ -77,6 +85,7 @@ class Users(Resource):
             page=page
         ), 200)
 
+    @jwt_required
     @use_args(UserSchema())
     def post(self, args):
         user = User(**args)
@@ -105,6 +114,7 @@ class Users(Resource):
 
 @api.resource('/users/<user_id>/rooms')
 class Rooms(Resource):
+    @jwt_required
     def get(self, user_id):
         from .app import app
         page = request.args.get('page', 1, type=int)
@@ -120,6 +130,7 @@ class Rooms(Resource):
             page=page
         ), 200)
 
+    @jwt_required
     def post(self, user_id):
         args = request.json
         if not args.get('created_by'):
@@ -153,9 +164,7 @@ class Rooms(Resource):
 
 @api.resource('/users/<user_id>/rooms/<room_id>/memberships')
 class Memberships(Resource):
-    def get(self):
-        pass
-
+    @jwt_required
     @use_args({
         "usernames": fields.List(fields.String()),
         "user_ids": fields.List(fields.Int())
@@ -193,6 +202,7 @@ class Memberships(Resource):
     '/users/<user_id>/messages'
 )
 class Messages(Resource):
+    @jwt_required
     @use_args({
         "room_ids": fields.List(fields.Int())
     }, location="query")
@@ -248,6 +258,7 @@ class Messages(Resource):
 
 @api.resource('/users/<user_id>/rooms/<room_id>/messages_seen')
 class MessageSeens(Resource):
+    @jwt_required
     def put(self, user_id, room_id):
         status = request.json.get('status')
         message_ids = request.json.get('messageIds')

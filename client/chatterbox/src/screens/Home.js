@@ -39,6 +39,12 @@ function Home(props) {
   const [createdSocket, setCreatedSocket] = useState(false);
 
   useEffect(() => {
+      if (!user) {
+        logoutUser();
+      }
+  }, [user]);
+
+  useEffect(() => {
     if (!createdSocket) {
       const socket = io(ENDPOINT);
       socket.on("connect", (data) => {
@@ -93,16 +99,13 @@ function Home(props) {
   }, [socket, user, rooms, fetchedRooms, joinedRooms]);
 
   useEffect(() => {
-    if (user && fetchedRooms){
-        const roomIds = rooms.map(room => (room.id));
-        getMessages(user.id, roomIds);
+    if (user && fetchedRooms) {
+      const roomIds = rooms.map((room) => room.id);
+      getMessages(user.id, roomIds);
     }
-  }, [user, rooms, fetchedRooms])
+  }, [user, rooms, fetchedRooms]);
 
-  if (!user || !isUserLoggedIn(tokens)) {
-    logoutUser();
-    return <Redirect to="/login" />;
-  }
+  if (!user) return (<Redirect to="/login" />);
 
   return (
     <div>
@@ -110,6 +113,7 @@ function Home(props) {
       <Tab.Container id="left-tabs-example" defaultActiveKey="first">
         <Row>
           <Col sm={3}>
+            <button onClick={logoutUser}>Logout</button>
             <Sidebar socket={socket} />
           </Col>
           <Col sm={9}>
@@ -119,10 +123,7 @@ function Home(props) {
               </Route>
               <Route path={`${path}/rooms`}>
                 <Route path={`${path}/rooms/:roomId`}>
-                  <Room
-                    socket={socket}
-                    createdSocket={createdSocket}
-                  />
+                  <Room socket={socket} createdSocket={createdSocket} />
                 </Route>
               </Route>
               <Route path={`${path}/users`}>Users</Route>

@@ -7,7 +7,7 @@ import AsyncSelect from "react-select/async";
 import { LinkContainer } from "react-router-bootstrap";
 import { connect } from "react-redux";
 
-import { api } from "../utils";
+import { api } from "../axios";
 import { getRooms } from "../redux/middleware/room";
 
 function Sidebar(props) {
@@ -72,24 +72,24 @@ function Sidebar(props) {
 
   useEffect(() => {
     if (messages) {
-        const counts = Object.fromEntries(
-            Object.entries(messages).map(([roomId, msgs]) => [
-                roomId, msgs.filter(
-                    m => !m.seens
-                    || !m.seens.find(s => s.user_id === user.id)
-                    || !(m.seens.find(s => s.user_id === user.id).status)
-                ).length
-            ]))
-        console.log(467, counts);
-        console.log(467, rooms);
-        console.log(467, messages);
-        setUnseenMessageCounts(counts);
+      const counts = Object.fromEntries(
+        Object.entries(messages).map(([roomId, msgs]) => [
+          roomId,
+          msgs.filter(
+            (m) =>
+              !m.seens ||
+              !m.seens.find((s) => s.user_id === user.id) ||
+              !m.seens.find((s) => s.user_id === user.id).status
+          ).length,
+        ])
+      );
+      setUnseenMessageCounts(counts);
     }
-  }, [messages])
+  }, [messages]);
 
-  const getUnseenMessageCountForRoom = roomId => {
+  const getUnseenMessageCountForRoom = (roomId) => {
     return roomId in unseenMessageCounts ? unseenMessageCounts[roomId] : 0;
-  }
+  };
 
   return (
     <Nav variant="pills" className="flex-column">
@@ -98,18 +98,20 @@ function Sidebar(props) {
         const unseenMessageCount = getUnseenMessageCountForRoom(room.id);
 
         return (
-        <Nav.Item key={index}>
-          <LinkContainer
-            to={{
-              pathname: `/home/rooms/${room.id}`,
-              state: { room },
-            }}
-          >
-            <Nav.Link eventKey={index}>
-                {room.name} unseen: {!!unseenMessageCount && unseenMessageCount}</Nav.Link>
-          </LinkContainer>
-        </Nav.Item>
-      )})}
+          <Nav.Item key={index}>
+            <LinkContainer
+              to={{
+                pathname: `/home/rooms/${room.id}`,
+                state: { room },
+              }}
+            >
+              <Nav.Link eventKey={index}>
+                {room.name} unseen: {!!unseenMessageCount && unseenMessageCount}
+              </Nav.Link>
+            </LinkContainer>
+          </Nav.Item>
+        );
+      })}
 
       <Modal show={showModal} onHide={onHide}>
         <Modal.Header closeButton>
