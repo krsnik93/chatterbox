@@ -57,8 +57,8 @@ function Room(props) {
 
   useEffect(() => {
     if (room && !(room.id in allRoomMessages)) {
-      console.log("get messages");
-      getMessages(user.id, room.id);
+      console.log(`Getting messages in room ${room.name}.`);
+      getMessages(user.id, [room.id]);
     }
   }, [room, allRoomMessages, getMessages, user.id]);
 

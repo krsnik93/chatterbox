@@ -15,7 +15,7 @@ import io from "socket.io-client";
 import Room from "./Room";
 import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
-import { addMessageAndSetSeen } from "../redux/middleware/message";
+import { getMessages, addMessageAndSetSeen } from "../redux/middleware/message";
 import Sidebar from "../components/Sidebar";
 import { isUserLoggedIn } from "../utils";
 
@@ -30,6 +30,7 @@ function Home(props) {
     logoutUser,
     addMessageAndSetSeen,
     addRoom,
+    getMessages,
   } = props;
   const { path } = useRouteMatch();
   const [socket, setSocket] = useState(null);
@@ -75,7 +76,7 @@ function Home(props) {
   }, []);
 
   useEffect(() => {
-    if (user.id) {
+    if (user && !fetchedRooms) {
       getRooms(user.id).then(() => setFetchedRooms(true));
     }
   }, [user, getRooms]);
@@ -90,6 +91,13 @@ function Home(props) {
       setJoinedRooms(true);
     }
   }, [socket, user, rooms, fetchedRooms, joinedRooms]);
+
+  useEffect(() => {
+    if (user && fetchedRooms){
+        const roomIds = rooms.map(room => (room.id));
+        getMessages(user.id, roomIds);
+    }
+  }, [user, rooms, fetchedRooms])
 
   if (!user || !isUserLoggedIn(tokens)) {
     logoutUser();
@@ -138,4 +146,5 @@ export default connect(mapStateToProps, {
   logoutUser,
   addMessageAndSetSeen,
   addRoom,
+  getMessages,
 })(Home);

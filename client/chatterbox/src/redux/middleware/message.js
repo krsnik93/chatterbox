@@ -11,12 +11,20 @@ import {
 } from "../actions/message";
 
 import { api } from "../../utils";
+import queryString from 'query-string';
 
-export function getMessages(userId, roomId) {
+
+export function getMessages(userId, roomIds) {
   return (dispatch) => {
     dispatch(getMessagesBegin());
+
+    const queryStr = queryString.stringify(
+        {room_ids: roomIds},
+        {arrayFormat: 'none'}
+    );
+
     return api
-      .get(`/users/${userId}/rooms/${roomId}/messages`)
+      .get(`/users/${userId}/messages?${queryStr}`)
       .then((response) => {
         const { data } = response;
         dispatch(getMessagesSuccess(data));

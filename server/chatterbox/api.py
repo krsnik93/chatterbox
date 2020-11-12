@@ -1,9 +1,10 @@
+from collections import defaultdict
 from flask import Blueprint, request, jsonify, make_response
 from flask_restful import Resource, Api
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 fresh_jwt_required, get_jwt_identity,
                                 jwt_refresh_token_required)
-from sqlalchemy.sql.expression import func
+from sqlalchemy.sql.expression import func, case
 from webargs import fields
 from webargs.flaskparser import use_args
 
@@ -181,32 +182,65 @@ class Memberships(Resource):
 
         with session_scope() as session:
             session.add_all(memberships)
+
         return make_response(jsonify(
             message='Memberships added.'
         ), 200)
 
 
-@api.resource('/users/<user_id>/rooms/<room_id>/messages')
+@api.resource(
+    '/users/<user_id>/rooms/<room_id>/messages',
+    '/users/<user_id>/messages'
+)
 class Messages(Resource):
-    def get(self, user_id, room_id):
+    @use_args({
+        "room_ids": fields.List(fields.Int())
+    }, location="query")
+    def get(self, args, user_id, room_id=None):
         from .app import app
+
         page = request.args.get('page', 1, type=int)
-        if not Membership.query.filter_by(
-                user_id=user_id, room_id=room_id
-        ).one_or_none():
+        room_ids = [room_id] if room_id else args.get('room_ids')
+
+        if Membership.query.filter(
+            Membership.user_id == user_id,
+            Membership.room_id.in_(room_ids)
+        ).count() < len(room_ids):
             return make_response(jsonify(
                 message=(
                     'User must be a member of the room to add other users.'
                 )),
                 403
             )
-        messages = Message.query.filter_by(
-            room_id=room_id
-        ).order_by(Message.sent_at.desc()).paginate(
-            page, app.config['PAGINATION_PER_PAGE'], False).items
+
+        subquery = db.session.query(
+            Message.id,
+            func.rank().over(
+                order_by=Message.sent_at.desc(),
+                partition_by=Message.room_id
+            ).label('rank')
+        ).filter(Message.room_id.in_(room_ids)).subquery()
+
+        message_dicts = db.session.query(subquery.c.id).filter(
+            subquery.c.rank <= app.config['PAGINATION_PER_PAGE']).all()
+
+        message_ids = [id_ for (id_,) in message_dicts]
+
+        ordering = case(
+            {id_: index for index, id_ in enumerate(message_ids)},
+            value=Message.id
+        )
+        messages = Message.query.filter(Message.id.in_(message_ids)).order_by(
+            ordering).all()
+
+        messages_serialized = MessageSchema(many=True).dump(messages)
+        messages_by_room_id = defaultdict(list)
+        for m in messages_serialized:
+            messages_by_room_id[m['room_id']].append(m)
+
         return make_response(jsonify(
-            messages=MessageSchema(many=True).dump(messages),
-            room_id=room_id,
+            messages=messages_by_room_id,
+            room_ids=room_ids,
             page=page
         ), 200)
 

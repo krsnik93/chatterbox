@@ -11,10 +11,11 @@ import { api } from "../utils";
 import { getRooms } from "../redux/middleware/room";
 
 function Sidebar(props) {
-  const { user, rooms, socket, createdRoom, getRooms } = props;
+  const { user, rooms, messages, socket, createdRoom, getRooms } = props;
   const [showModal, setShowModal] = useState(false);
   const [roomName, setRoomName] = useState("");
   const [users, setUsers] = useState([]);
+  const [unseenMessageCounts, setUnseenMessageCounts] = useState(null);
 
   const onClick = () => {
     setShowModal(true);
@@ -69,10 +70,34 @@ function Sidebar(props) {
     }
   }, [createdRoom, getRooms, user.id]);
 
+  useEffect(() => {
+    if (messages) {
+        const counts = Object.fromEntries(
+            Object.entries(messages).map(([roomId, msgs]) => [
+                roomId, msgs.filter(
+                    m => !m.seens
+                    || !m.seens.find(s => s.user_id === user.id)
+                    || !(m.seens.find(s => s.user_id === user.id).status)
+                ).length
+            ]))
+        console.log(467, counts);
+        console.log(467, rooms);
+        console.log(467, messages);
+        setUnseenMessageCounts(counts);
+    }
+  }, [messages])
+
+  const getUnseenMessageCountForRoom = roomId => {
+    return roomId in unseenMessageCounts ? unseenMessageCounts[roomId] : 0;
+  }
+
   return (
     <Nav variant="pills" className="flex-column">
       <button onClick={onClick}>Create a Room</button>
-      {rooms.map((room, index) => (
+      {rooms.map((room, index) => {
+        const unseenMessageCount = getUnseenMessageCountForRoom(room.id);
+
+        return (
         <Nav.Item key={index}>
           <LinkContainer
             to={{
@@ -80,10 +105,11 @@ function Sidebar(props) {
               state: { room },
             }}
           >
-            <Nav.Link eventKey={index}>{room.name}</Nav.Link>
+            <Nav.Link eventKey={index}>
+                {room.name} unseen: {!!unseenMessageCount && unseenMessageCount}</Nav.Link>
           </LinkContainer>
         </Nav.Item>
-      ))}
+      )})}
 
       <Modal show={showModal} onHide={onHide}>
         <Modal.Header closeButton>
@@ -126,6 +152,7 @@ const mapStateToProps = (state) => ({
   user: state.userReducer.user,
   rooms: state.roomReducer.rooms,
   createdRoom: state.roomReducer.createdRoom,
+  messages: state.messageReducer.messages,
 });
 
 export default connect(mapStateToProps, { getRooms })(Sidebar);
