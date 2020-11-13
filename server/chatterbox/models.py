@@ -28,8 +28,8 @@ class Room(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    messages = db.relationship("Message")
-    memberships = db.relationship("Membership")
+    messages = db.relationship("Message", cascade="all, delete")
+    memberships = db.relationship("Membership", cascade="all, delete")
 
 
 class Membership(db.Model):
@@ -51,7 +51,7 @@ class Message(db.Model):
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
     sent_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     sender = db.relationship("User")
-    seens = db.relationship("MessageSeen")
+    seens = db.relationship("MessageSeen", cascade="all, delete")
 
 
 class MessageSeen(db.Model):

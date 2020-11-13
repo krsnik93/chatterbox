@@ -112,7 +112,10 @@ class Users(Resource):
         ), 200)
 
 
-@api.resource('/users/<user_id>/rooms')
+@api.resource(
+    '/users/<user_id>/rooms',
+    '/users/<user_id>/rooms/<room_id>',
+)
 class Rooms(Resource):
     @jwt_required
     def get(self, user_id):
@@ -161,6 +164,27 @@ class Rooms(Resource):
 
         return make_response(jsonify(room=serialized), 200)
 
+    @jwt_required
+    def delete(self, user_id, room_id):
+        room = Room.query.filter_by(
+            id=room_id,
+            created_by=user_id
+        ).one_or_none()
+
+        if not room:
+            return make_response(jsonify(
+                message=(
+                    'User must be the creator of the room to be able to '
+                    'delete it.'
+                )),
+                403
+            )
+
+        with session_scope() as session:
+            session.delete(room)
+
+        return make_response(jsonify(room_id=room_id), 200)
+
 
 @api.resource('/users/<user_id>/rooms/<room_id>/memberships')
 class Memberships(Resource):
@@ -195,6 +219,23 @@ class Memberships(Resource):
         return make_response(jsonify(
             message='Memberships added.'
         ), 200)
+
+    @jwt_required
+    def delete(self, user_id, room_id):
+        if not Membership.query.filter_by(user_id=user_id, room_id=room_id).one_or_none():
+            return make_response(jsonify(
+                message=(
+                    'User must be a member of the room to leave it.'
+                )),
+                403
+            )
+
+        with session_scope() as session:
+            session.query(Membership).filter_by(
+                room_id=room_id, user_id=user_id
+            ).delete()
+
+        return make_response(jsonify(room_id=room_id), 200)
 
 
 @api.resource(
@@ -238,14 +279,15 @@ class Messages(Resource):
         message_ids = [id_ for (id_,) in message_dicts]
 
         ordering = case(
-            {id_: index for index, id_ in enumerate(message_ids)},
+            {id_: index for index, id_ in enumerate(message_ids)}
+            if message_ids else {-1: -1},  # handle 0 rows
             value=Message.id
         )
         messages = Message.query.filter(Message.id.in_(message_ids)).order_by(
             ordering).all()
 
         messages_serialized = MessageSchema(many=True).dump(messages)
-        messages_by_room_id = defaultdict(list)
+        messages_by_room_id = {room_id: [] for room_id in room_ids}
         for m in messages_serialized:
             messages_by_room_id[m['room_id']].append(m)
 

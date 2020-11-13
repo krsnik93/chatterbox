@@ -12,6 +12,7 @@ class UserSchema(marshmallow.SQLAlchemyAutoSchema):
 class RoomSchema(marshmallow.SQLAlchemyAutoSchema):
     class Meta:
         model = Room
+        include_fk = True
         datetimeformat = '%Y-%m-%dT%H:%M:%S%z'
 
 
@@ -33,4 +34,3 @@ class MessageSeenSchema(marshmallow.SQLAlchemyAutoSchema):
     class Meta:
         model = MessageSeen
         include_fk = True
-
