@@ -39,9 +39,9 @@ function Home(props) {
   const [createdSocket, setCreatedSocket] = useState(false);
 
   useEffect(() => {
-      if (!user) {
-        logoutUser();
-      }
+    if (!user) {
+      logoutUser();
+    }
   }, [user]);
 
   useEffect(() => {
@@ -105,7 +105,7 @@ function Home(props) {
     }
   }, [user, rooms, fetchedRooms]);
 
-  if (!user) return (<Redirect to="/login" />);
+  if (!user) return <Redirect to="/login" />;
 
   return (
     <div>

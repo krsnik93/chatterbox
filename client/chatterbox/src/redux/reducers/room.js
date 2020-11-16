@@ -69,7 +69,9 @@ const roomReducer = (state = initialState, action) => {
     case LEAVE_ROOM_SUCCESS:
       return {
         ...state,
-        rooms: state.rooms.filter(room => room.id !== parseInt(action.payload.roomId)),
+        rooms: state.rooms.filter(
+          (room) => room.id !== parseInt(action.payload.roomId)
+        ),
         loading: false,
         error: null,
       };
@@ -88,7 +90,9 @@ const roomReducer = (state = initialState, action) => {
     case DELETE_ROOM_SUCCESS:
       return {
         ...state,
-        rooms: state.rooms.filter(room => room.id !== parseInt(action.payload.roomId)),
+        rooms: state.rooms.filter(
+          (room) => room.id !== parseInt(action.payload.roomId)
+        ),
         loading: false,
         error: null,
       };

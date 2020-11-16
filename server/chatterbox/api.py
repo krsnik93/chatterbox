@@ -42,11 +42,19 @@ class Tokens(Resource):
     @use_args(UserSchema(only=('username', 'password')))
     def post(self, user):
         matching_user = User.query.filter_by(username=user['username']).first()
-        if matching_user is None or not matching_user.check_password(
-                user['password']):
+
+        if (
+                matching_user is None
+                or not matching_user.check_password(user['password'])
+        ):
+            message = 'Invalid email address or password.'
             return make_response(
-                jsonify(message='Invalid email address or password.'),
-                404)
+                jsonify(errors={
+                    'username': {'message': message},
+                    'password': {'message': message},
+                }),
+                403)
+
         access_token = create_access_token(matching_user.id)
         refresh_token = create_refresh_token(matching_user.id)
         return make_response(jsonify(
@@ -85,17 +93,28 @@ class Users(Resource):
             page=page
         ), 200)
 
-    @jwt_required
     @use_args(UserSchema())
     def post(self, args):
         user = User(**args)
+
         if User.query.filter_by(email=user.email).first() is not None:
             return make_response(jsonify(
-                message=(
-                    'User with the provided email address already exists.'
-                )),
-                404
-            )
+                errors={
+                    'email': {
+                        'message': 'Email address already in use.'
+                    }
+                }
+            ), 403)
+
+        if User.query.filter_by(username=user.username).first() is not None:
+            return make_response(jsonify(
+                errors={
+                    'username': {
+                        'message': 'Username already in use.'
+                    }
+                }
+            ), 403)
+
         # https://stackoverflow.com/a/38262440/2858258
         user.password = bcrypt.generate_password_hash(
             user.password.encode('utf8')).decode('utf8')

@@ -44,45 +44,41 @@ export function addRoom(room) {
 }
 
 export function leaveRoom(userId, roomId) {
-    return (dispatch) => {
-        dispatch(leaveRoomBegin());
-        return api
-          .delete(`/users/${userId}/rooms/${roomId}/memberships`)
-          .then((response) => {
-            const {status } = response;
-            if (status === 200) {
-                const { room_id } = response.data;
-                dispatch(leaveRoomSuccess(room_id));
-            }
-            else {
-                dispatch(leaveRoomFailure(response));
-            }
-
-          })
-          .catch((error) => {
-            dispatch(leaveRoomFailure(error));
-          });
-    };
+  return (dispatch) => {
+    dispatch(leaveRoomBegin());
+    return api
+      .delete(`/users/${userId}/rooms/${roomId}/memberships`)
+      .then((response) => {
+        const { status } = response;
+        if (status === 200) {
+          const { room_id } = response.data;
+          dispatch(leaveRoomSuccess(room_id));
+        } else {
+          dispatch(leaveRoomFailure(response));
+        }
+      })
+      .catch((error) => {
+        dispatch(leaveRoomFailure(error));
+      });
+  };
 }
 
 export function deleteRoom(userId, roomId) {
-    return (dispatch) => {
-        dispatch(deleteRoomBegin());
-        return api
-          .delete(`/users/${userId}/rooms/${roomId}`)
-          .then((response) => {
-            const {status } = response;
-            if (status === 200) {
-                const { room_id } = response.data;
-                dispatch(deleteRoomSuccess(room_id));
-            }
-            else {
-                dispatch(deleteRoomFailure(response));
-            }
-
-          })
-          .catch((error) => {
-            dispatch(deleteRoomFailure(error));
-          });
-    };
+  return (dispatch) => {
+    dispatch(deleteRoomBegin());
+    return api
+      .delete(`/users/${userId}/rooms/${roomId}`)
+      .then((response) => {
+        const { status } = response;
+        if (status === 200) {
+          const { room_id } = response.data;
+          dispatch(deleteRoomSuccess(room_id));
+        } else {
+          dispatch(deleteRoomFailure(response));
+        }
+      })
+      .catch((error) => {
+        dispatch(deleteRoomFailure(error));
+      });
+  };
 }

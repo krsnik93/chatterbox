@@ -5,6 +5,7 @@ import roomReducer from "./room";
 import membershipReducer from "./membership";
 import messageReducer from "./message";
 import tabReducer from "./tab";
+import formReducer from "./form";
 
 const rootReducer = combineReducers({
   userReducer,
@@ -12,5 +13,6 @@ const rootReducer = combineReducers({
   membershipReducer,
   messageReducer,
   tabReducer,
+  formReducer,
 });
 export default rootReducer;

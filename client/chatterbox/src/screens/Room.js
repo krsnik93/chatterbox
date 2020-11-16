@@ -6,11 +6,7 @@ import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
 
-import {
-    getRooms,
-    leaveRoom,
-    deleteRoom
-} from "../redux/middleware/room";
+import { getRooms, leaveRoom, deleteRoom } from "../redux/middleware/room";
 import {
   getMessages,
   addMessageAndSetSeen,
@@ -45,7 +41,10 @@ function Room(props) {
   const [messages, setMessages] = useState([]);
   const [showLeaveRoomModal, setShowLeaveRoomModal] = useState(false);
   const [showDeleteRoomModal, setShowDeleteRoomModal] = useState(false);
-  const [createdSocketMessageListener, setCreatedSocketMessageListener] = useState(false);
+  const [
+    createdSocketMessageListener,
+    setCreatedSocketMessageListener,
+  ] = useState(false);
 
   useEffect(() => {
     if (user && !rooms.length && !fetchedRooms) {
@@ -54,12 +53,14 @@ function Room(props) {
   }, [user, rooms.length, getRooms, fetchedRooms]);
 
   useEffect(() => {
-
-    if (rooms && rooms.filter(room => room.id === parseInt(roomId)).length === 0) {
-        console.log('noRoom');
-        setNoRoom(true);
+    if (
+      rooms &&
+      rooms.filter((room) => room.id === parseInt(roomId)).length === 0
+    ) {
+      console.log("noRoom");
+      setNoRoom(true);
     }
-  }, [rooms, roomId])
+  }, [rooms, roomId]);
 
   useEffect(() => {
     if (rooms.length > 0) {
@@ -142,32 +143,32 @@ function Room(props) {
 
   const onClickLeaveAction = () => {
     setShowLeaveRoomModal(true);
-  }
+  };
 
   const onClickDeleteAction = () => {
     setShowDeleteRoomModal(true);
-  }
+  };
 
   const onHideLeaveRoomModal = () => {
     setShowLeaveRoomModal(false);
-  }
+  };
 
   const onHideDeleteRoomModal = () => {
     setShowDeleteRoomModal(false);
-  }
+  };
 
   const onConfirmLeaveRoomModal = () => {
     leaveRoom(user.id, room.id);
     setShowLeaveRoomModal(false);
-  }
+  };
 
   const onConfirmDeleteRoomModal = () => {
     deleteRoom(user.id, room.id);
     setShowDeleteRoomModal(false);
-  }
+  };
 
   if (noRoom) {
-    return (<Redirect to="/home" />);
+    return <Redirect to="/home" />;
   }
 
   return (
@@ -181,16 +182,13 @@ function Room(props) {
         {!!room && room.name}
       </div>
       <DropdownButton id="dropdown-basic-button" title="Actions">
-          <Dropdown.Item onClick={onClickLeaveAction}>Leave Room</Dropdown.Item>
-          {
-            user && room && user.id === room.created_by
-            && (
-                <Dropdown.Item onClick={onClickDeleteAction}>
-                    Delete Room
-                </Dropdown.Item>
-                )
-          }
-       </DropdownButton>
+        <Dropdown.Item onClick={onClickLeaveAction}>Leave Room</Dropdown.Item>
+        {user && room && user.id === room.created_by && (
+          <Dropdown.Item onClick={onClickDeleteAction}>
+            Delete Room
+          </Dropdown.Item>
+        )}
+      </DropdownButton>
       <form onSubmit={onSubmit}>
         <input
           type="text"
@@ -211,45 +209,43 @@ function Room(props) {
         ))}
       </div>
 
-      {
-        room && (
+      {room && (
         <div>
-            <Modal show={showLeaveRoomModal} onHide={onHideLeaveRoomModal}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Leave Room</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <h4>Are you sure you want to leave room {room.name}?</h4>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={onHideLeaveRoomModal}>
-                    Cancel
-                  </Button>
-                  <Button variant="primary" onClick={onConfirmLeaveRoomModal}>
-                    Confirm
-                  </Button>
-                </Modal.Footer>
-              </Modal>
+          <Modal show={showLeaveRoomModal} onHide={onHideLeaveRoomModal}>
+            <Modal.Header closeButton>
+              <Modal.Title>Leave Room</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <h4>Are you sure you want to leave room {room.name}?</h4>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={onHideLeaveRoomModal}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={onConfirmLeaveRoomModal}>
+                Confirm
+              </Button>
+            </Modal.Footer>
+          </Modal>
 
-              <Modal show={showDeleteRoomModal} onHide={onHideDeleteRoomModal}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Delete Room</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <h4>Are you sure you want to delete room {room.name}?</h4>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={onHideDeleteRoomModal}>
-                    Cancel
-                  </Button>
-                  <Button variant="primary" onClick={onConfirmDeleteRoomModal}>
-                    Confirm
-                  </Button>
-                </Modal.Footer>
-              </Modal>
+          <Modal show={showDeleteRoomModal} onHide={onHideDeleteRoomModal}>
+            <Modal.Header closeButton>
+              <Modal.Title>Delete Room</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <h4>Are you sure you want to delete room {room.name}?</h4>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={onHideDeleteRoomModal}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={onConfirmDeleteRoomModal}>
+                Confirm
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </div>
-        )
-      }
+      )}
     </div>
   );
 }

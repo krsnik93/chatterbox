@@ -8,17 +8,18 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(
-   config => {
-       const accessToken = store.getState().userReducer.tokens.accessToken;
-       if (accessToken) {
-           config.headers['Authorization'] = 'Bearer ' + accessToken;
-       }
-       config.headers['Content-Type'] = 'application/json';
-       return config;
-   },
-   error => {
-       Promise.reject(error)
-   });
+  (config) => {
+    const accessToken = store.getState().userReducer.tokens.accessToken;
+    if (accessToken) {
+      config.headers["Authorization"] = "Bearer " + accessToken;
+    }
+    config.headers["Content-Type"] = "application/json";
+    return config;
+  },
+  (error) => {
+    Promise.reject(error);
+  }
+);
 
 /*
 https://www.techynovice.com/setting-up-JWT-token-refresh-mechanism-with-axios/
