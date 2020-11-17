@@ -1,0 +1,24 @@
+.nav {
+    border: 1px solid #cccccc;
+}
+.navItem {
+    width: 100%;
+    border-bottom: 1px solid #cccccc;
+    border-top: 1px solid #cccccc;
+}
+.navLink {
+    font-size: 18px;
+    color: #2f3640 !important;
+}
+.navLink:hover {
+    background-color: #E8E8E8;
+    color: #2f3640 !important;
+    border-radius: 0;
+}
+.navLink:global(.active) {
+  background-color: #F3C13A !important;
+  color: #2f3640 !important;
+  border: 0 !important;
+  border-radius: 0;
+  border: 1px solid #2f3640 !important;
+}

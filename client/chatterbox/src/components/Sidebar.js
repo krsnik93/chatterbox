@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import Nav from "react-bootstrap/Nav";
 import { LinkContainer } from "react-router-bootstrap";
 import { connect } from "react-redux";
+import classNames from "classnames";
 
 import { api } from "../axios";
 import { getRooms } from "../redux/middleware/room";
+import styles from "./Sidebar.module.css";
+
 
 function Sidebar(props) {
-  const { user, rooms, messages, socket, getRooms } = props;
+  const { user, rooms, messages, activeRoomId, socket, getRooms } = props;
   const [unseenMessageCounts, setUnseenMessageCounts] = useState({});
 
   useEffect(() => {
@@ -32,20 +35,24 @@ function Sidebar(props) {
   };
 
   return (
-    <Nav variant="pills" className="flex-column">
+    <Nav
+        variant="tabs"
+        activeKey={activeRoomId?.toString()}
+        className={classNames("flex-column", styles.nav)}
+    >
       {rooms.map((room, index) => {
         const unseenMessageCount = getUnseenMessageCountForRoom(room.id);
 
         return (
-          <Nav.Item key={index}>
-            <LinkContainer
+          <Nav.Item key={index} eventKey={room.id} className={styles.navItem}>
+            <LinkContainer className={styles.link}
               to={{
                 pathname: `/home/rooms/${room.id}`,
                 state: { room },
               }}
             >
-              <Nav.Link eventKey={index}>
-                {room.name} unseen: {!!unseenMessageCount && unseenMessageCount}
+              <Nav.Link eventKey={room.id} className={styles.navLink}>
+                {room.name} {!!unseenMessageCount && unseenMessageCount}
               </Nav.Link>
             </LinkContainer>
           </Nav.Item>
@@ -59,6 +66,7 @@ const mapStateToProps = (state) => ({
   user: state.userReducer.user,
   rooms: state.roomReducer.rooms,
   messages: state.messageReducer.messages,
+  activeRoomId: state.tabReducer.activeRoomId
 });
 
 export default connect(mapStateToProps, { getRooms })(Sidebar);

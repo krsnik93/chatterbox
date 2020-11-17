@@ -18,6 +18,7 @@ import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
 import { getMessages, addMessageAndSetSeen } from "../redux/middleware/message";
 import Sidebar from "../components/Sidebar";
+import Welcome from "../screens/Welcome";
 import styles from "./Home.module.css";
 import { isUserLoggedIn } from "../utils";
 
@@ -120,7 +121,7 @@ function Home(props) {
           <Col sm={9} className={styles.column}>
             <Switch>
               <Route exact path={`${path}`}>
-                <h3>Welcome.</h3>
+                <Welcome />
               </Route>
               <Route path={`${path}/rooms`}>
                 <Route path={`${path}/rooms/:roomId`}>
