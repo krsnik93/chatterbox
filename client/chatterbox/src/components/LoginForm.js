@@ -115,7 +115,7 @@ function LoginForm(props) {
               />
               <Form.Control.Feedback type="valid" />
               <Form.Control.Feedback type="invalid">
-                {errors.password?.message}{" "}
+                {errors.password?.message}
               </Form.Control.Feedback>
             </Form.Group>
           </Col>

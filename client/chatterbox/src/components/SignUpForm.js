@@ -11,38 +11,30 @@ import { signUpUser } from "../redux/middleware/user";
 import styles from "./SignUpForm.module.css";
 
 function SignUpForm(props) {
-  const { signUpUser, errorsSignUp: errServ } = props;
-  const { register, handleSubmit, errors: errClient } = useForm();
-  const [errors, setErrors] = useState({});
-  const [validated, setValidated] = useState(false);
-  const [submittedOnce, setSubmittedOnce] = useState(false);
-
-  const [state, setState] = useState({
-    username: "",
-    email: "",
-    password: "",
+  const { signUpUser, errorsSignUp: errorsServer } = props;
+  const { register, handleSubmit, errors, formState, setError } = useForm({
+    mode: "onBlur",
+    reValidateMode: "onChange",
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
   });
+  const { touched, dirtyFields, submitCount } = formState;
+  const [validated, setValidated] = useState(false);
+  const setServerErrors = (errors) => {
+    Object.keys(errors).forEach((key) => {
+      setError(key, {
+        type: "server",
+        message: errors[key].message,
+      });
+    });
+  };
 
   useEffect(() => {
-    const errors = {
-      email: errClient.email
-        ? errClient.email
-        : errServ.email
-        ? errServ.email
-        : null,
-      username: errClient.username
-        ? errClient.username
-        : errServ.username
-        ? errServ.username
-        : null,
-      password: errClient.password
-        ? errClient.password
-        : errServ.password
-        ? errServ.password
-        : null,
-    };
-    setErrors(errors);
-  }, [errServ, errClient]);
+    setServerErrors(errorsServer);
+  }, [errorsServer]);
 
   useEffect(() => {
     if (!Object.values(errors).some((error) => error !== null)) {
@@ -50,28 +42,22 @@ function SignUpForm(props) {
     }
   }, [errors]);
 
-  const onChange = (event) => {
-    setState({
-      ...state,
-      [event.target.name]: event.target.value,
-    });
-    setValidated(false);
-  };
-
   const onSubmit = (data, e) => {
-    setSubmittedOnce(true);
-    setValidated(true);
-    const { username, email, password } = state;
+    const { username, email, password } = data;
     signUpUser(username, email, password);
   };
+
   const onError = (errors, e) => {
-    setSubmittedOnce(true);
     setValidated(false);
   };
 
   return (
     <Container className={styles.container}>
-      <Form onSubmit={handleSubmit(onSubmit, onError)} validated={validated}>
+      <Form
+        onSubmit={handleSubmit(onSubmit, onError)}
+        noValidate
+        validated={validated}
+      >
         <Row className={styles.row}>
           <Col className={styles.headingColumn}>
             <h4 className={styles.heading}>Sign Up</h4>
@@ -84,22 +70,24 @@ function SignUpForm(props) {
                 type="email"
                 name="email"
                 placeholder="Enter Email Address..."
-                value={state.email}
-                onChange={onChange}
                 ref={register({
                   required: "Email address is tequired.",
-                  maxLength: 254,
+                  maxLength: {
+                    value: 254,
+                    message:
+                      "Email address has to have at most 254 characters.",
+                  },
                   pattern: {
                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
+                    message: "Invalid email address format.",
                   },
                 })}
-                isValid={submittedOnce && !errors.email}
+                isValid={submitCount > 0 && !errors.email}
                 isInvalid={!!errors.email}
               />
               <Form.Control.Feedback type="valid" />
               <Form.Control.Feedback type="invalid">
-                {errors.email && errors.email.message}
+                {errors.email?.message}
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
@@ -111,19 +99,23 @@ function SignUpForm(props) {
                 type="text"
                 name="username"
                 placeholder="Enter Username..."
-                value={state.username}
-                onChange={onChange}
                 ref={register({
                   required: "Username is required.",
-                  minLength: 8,
-                  maxLength: 128,
+                  minLength: {
+                    value: 8,
+                    message: "Username has to have at least 8 characters.",
+                  },
+                  maxLength: {
+                    value: 128,
+                    message: "Username has to have at most 128 characters.",
+                  },
                 })}
-                isValid={submittedOnce && !errors.username}
+                isValid={submitCount > 0 && !errors.username}
                 isInvalid={!!errors.username}
               />
               <Form.Control.Feedback type="valid" />
               <Form.Control.Feedback type="invalid">
-                {errors.username && errors.username.message}
+                {errors.username?.message}
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
@@ -135,19 +127,23 @@ function SignUpForm(props) {
                 type="password"
                 name="password"
                 placeholder="Enter Password..."
-                value={state.password}
-                onChange={onChange}
                 ref={register({
                   required: "Password is required.",
-                  minLength: 8,
-                  maxLength: 128,
+                  minLength: {
+                    value: 8,
+                    message: "Password has to have at least 8 characters.",
+                  },
+                  maxLength: {
+                    value: 128,
+                    message: "Password has to have at most 128 characters.",
+                  },
                 })}
-                isValid={submittedOnce && !errors.password}
+                isValid={submitCount > 0 && !errors.password}
                 isInvalid={!!errors.password}
               />
               <Form.Control.Feedback type="valid" />
               <Form.Control.Feedback type="invalid">
-                {errors.password && errors.password.message}
+                {errors.password?.message}
               </Form.Control.Feedback>
             </Form.Group>
           </Col>
