@@ -13,10 +13,12 @@ import Row from "react-bootstrap/Row";
 import io from "socket.io-client";
 
 import Room from "./Room";
+import Header from "../components/Header";
 import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
 import { getMessages, addMessageAndSetSeen } from "../redux/middleware/message";
 import Sidebar from "../components/Sidebar";
+import styles from "./Home.module.css";
 import { isUserLoggedIn } from "../utils";
 
 const ENDPOINT = "http://127.0.0.1:5000";
@@ -109,14 +111,13 @@ function Home(props) {
 
   return (
     <div>
-      <p>Hi {user.username}</p>
+      <Header socket={socket} />
       <Tab.Container id="left-tabs-example" defaultActiveKey="first">
-        <Row>
-          <Col sm={3}>
-            <button onClick={logoutUser}>Logout</button>
+        <Row className={styles.row}>
+          <Col sm={3} className={styles.column}>
             <Sidebar socket={socket} />
           </Col>
-          <Col sm={9}>
+          <Col sm={9} className={styles.column}>
             <Switch>
               <Route exact path={`${path}`}>
                 <h3>Welcome.</h3>
