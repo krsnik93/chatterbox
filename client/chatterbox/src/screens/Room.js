@@ -125,7 +125,7 @@ function Room(props) {
     }
   }, [activeRoomId, createdSocket, socket, addMessageAndSetSeen, user]);
 
-  const onSubmit = (event) => {
+  const onClick = (event) => {
     event.preventDefault();
     socket.emit("message event", {
       room: room.id,
@@ -226,7 +226,7 @@ function Room(props) {
             onChange={onChange}
           />
           <InputGroup.Append>
-            <Button variant="dark" onSubmit={onSubmit}>
+            <Button variant="dark" onClick={onClick}>
               Send!
             </Button>
           </InputGroup.Append>
