@@ -21,7 +21,7 @@ import {
   setMessageSeen,
 } from "../redux/middleware/message";
 import { setActiveRoomId } from "../redux/actions/tab";
-
+import MessageItem from "../components/MessageItem";
 import styles from "./Room.module.css";
 
 function Room(props) {
@@ -182,22 +182,20 @@ function Room(props) {
   return (
     <div>
       <Navbar bg="light" expand="lg">
-        <Navbar.Brand href="#home">{room?.name}</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-
-          <InputGroup className={classNames(styles.input, "ml-auto")}>
+        <Navbar.Brand className={styles.roomName}>
+            {room?.name}
+        </Navbar.Brand>
+        <Navbar.Toggle />
+        <Navbar.Collapse>
+          <InputGroup className={styles.input}>
             <Form.Control
-              placeholder="Recipient's username"
-              aria-label="Recipient's username"
-              aria-describedby="basic-addon2"
+              placeholder="Search Messages..."
             />
             <InputGroup.Append>
-              <Button variant="outline-secondary">
+              <Button variant="dark">
                 <FontAwesomeIcon icon={faSearch} /> Search
               </Button>
             </InputGroup.Append>
-
           </InputGroup>
           <Nav className="ml-auto">
             <NavDropdown title="Actions" id="actions-dropdown">
@@ -213,25 +211,26 @@ function Room(props) {
           </Nav>
         </Navbar.Collapse>
       </Navbar>
-
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          placeholder="Type a message..."
-          name="message"
-          value={message}
-          onChange={onChange}
-        />
-        <input type="submit" name="message" value="Submit" />
-      </form>
-      <div className={styles.messages}>
-        {messages.map((message, index) => (
-          <div key={index}>
-            {message.sender ? message.sender.username : ""}: {message.text}{" "}
-            {message.sent_at}
-            seen: {getMessageSeenStatus(message) ? "true" : "false"}
-          </div>
-        ))}
+      <div className={styles.chat}>
+        <div className={styles.messages}>
+          {messages.map((message, index) => (
+            <MessageItem key={index} message={message} user={user} />
+          ))}
+        </div>
+        <InputGroup className="mb-3">
+          <Form.Control
+            name="message"
+            type="text"
+            placeholder="Type a Message..."
+            value={message}
+            onChange={onChange}
+          />
+          <InputGroup.Append>
+            <Button variant="dark" onSubmit={onSubmit}>
+              Send!
+            </Button>
+          </InputGroup.Append>
+        </InputGroup>
       </div>
 
       {room && (

@@ -53,14 +53,11 @@ function Sidebar(props) {
               }}
             >
               <Nav.Link eventKey={room.id} className={styles.navLink}>
-                {room.name} {!!unseenMessageCount && (
-                    <Badge
-                        pill
-                        className={styles.badge}
-                        variant="secondary"
-                    >
-                        {unseenMessageCount}
-                    </Badge>
+                {room.name}{" "}
+                {!!unseenMessageCount && (
+                  <Badge pill className={styles.badge} variant="secondary">
+                    {unseenMessageCount}
+                  </Badge>
                 )}
               </Nav.Link>
             </LinkContainer>
