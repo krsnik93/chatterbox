@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
-import Modal from "react-bootstrap/Modal";
+import Navbar from "react-bootstrap/Navbar";
+import Nav from "react-bootstrap/Nav";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
+import Form from "react-bootstrap/Form";
+import NavDropdown from "react-bootstrap/NavDropdown";
+import Modal from "react-bootstrap/Modal";
+import InputGroup from "react-bootstrap/InputGroup";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
+import classNames from "classnames";
 
 import { getRooms, leaveRoom, deleteRoom } from "../redux/middleware/room";
 import {
@@ -173,22 +181,39 @@ function Room(props) {
 
   return (
     <div>
-      <div>
-        Username:
-        {user.username}
-      </div>
-      <div>
-        Room:
-        {!!room && room.name}
-      </div>
-      <DropdownButton id="dropdown-basic-button" title="Actions">
-        <Dropdown.Item onClick={onClickLeaveAction}>Leave Room</Dropdown.Item>
-        {user && room && user.id === room.created_by && (
-          <Dropdown.Item onClick={onClickDeleteAction}>
-            Delete Room
-          </Dropdown.Item>
-        )}
-      </DropdownButton>
+      <Navbar bg="light" expand="lg">
+        <Navbar.Brand href="#home">{room?.name}</Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+
+          <InputGroup className={classNames(styles.input, "ml-auto")}>
+            <Form.Control
+              placeholder="Recipient's username"
+              aria-label="Recipient's username"
+              aria-describedby="basic-addon2"
+            />
+            <InputGroup.Append>
+              <Button variant="outline-secondary">
+                <FontAwesomeIcon icon={faSearch} /> Search
+              </Button>
+            </InputGroup.Append>
+
+          </InputGroup>
+          <Nav className="ml-auto">
+            <NavDropdown title="Actions" id="actions-dropdown">
+              <NavDropdown.Item onClick={onClickLeaveAction}>
+                Leave Room
+              </NavDropdown.Item>
+              {user?.id === room?.created_by && (
+                <NavDropdown.Item onClick={onClickDeleteAction}>
+                  Delete Room
+                </NavDropdown.Item>
+              )}
+            </NavDropdown>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
+
       <form onSubmit={onSubmit}>
         <input
           type="text"

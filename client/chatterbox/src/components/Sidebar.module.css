@@ -1,24 +1,38 @@
 .nav {
-    border: 1px solid #cccccc;
+    border-right: 1px solid #cccccc;
+    border-bottom: 1px solid #cccccc;
+    overflow: hidden;
 }
 .navItem {
     width: 100%;
     border-bottom: 1px solid #cccccc;
     border-top: 1px solid #cccccc;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.navItem:first-child {
+    border-top: 0px;
 }
 .navLink {
     font-size: 18px;
     color: #2f3640 !important;
+    border-radius: 0 !important;
+    flex: 1;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
 }
 .navLink:hover {
     background-color: #E8E8E8;
     color: #2f3640 !important;
-    border-radius: 0;
 }
 .navLink:global(.active) {
   background-color: #F3C13A !important;
   color: #2f3640 !important;
-  border: 0 !important;
-  border-radius: 0;
   border: 1px solid #2f3640 !important;
+}
+.badge {
+    padding: 5px !important;
+    width: 4ch;
 }

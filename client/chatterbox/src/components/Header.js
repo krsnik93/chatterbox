@@ -18,7 +18,6 @@ function Header(props) {
       <Navbar.Brand href="#home">Chatterbox</Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
-
         <Nav className="ml-auto">
           <CreateRoomButton variant="outline-light" socket={socket} />
           <NavDropdown title={user.username}>

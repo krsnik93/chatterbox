@@ -3,3 +3,6 @@
   min-height: 300px;
   min-width: 200px;
 }
+.input {
+    max-width: 300px;
+}

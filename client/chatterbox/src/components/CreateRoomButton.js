@@ -1,12 +1,12 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Nav from "react-bootstrap/Nav";
 import AsyncSelect from "react-select/async";
 import { connect } from "react-redux";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlusSquare } from "@fortawesome/free-regular-svg-icons";
 
 import { api } from "../axios";
 import { logoutUser } from "../redux/middleware/user";
@@ -27,11 +27,11 @@ const CreateRoomButton = (props) => {
     setRoomName("");
   };
 
-//  useEffect(() => {
-//    if (createdRoom) {
-//      getRooms(user.id);
-//    }
-//  }, [createdRoom, getRooms, user.id]);
+  //  useEffect(() => {
+  //    if (createdRoom) {
+  //      getRooms(user.id);
+  //    }
+  //  }, [createdRoom, getRooms, user.id]);
 
   const processUsers = (users) => {
     const processedUsers = users.map((user, index) => ({
@@ -75,7 +75,7 @@ const CreateRoomButton = (props) => {
     <>
       <Button {...props} onClick={onClick}>
         <FontAwesomeIcon icon={faPlusSquare} />
-        {' New Room'}
+        {" New Room"}
       </Button>
 
       <Modal show={showModal} onHide={onHide}>

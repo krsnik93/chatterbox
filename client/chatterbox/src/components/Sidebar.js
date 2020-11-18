@@ -3,11 +3,11 @@ import Nav from "react-bootstrap/Nav";
 import { LinkContainer } from "react-router-bootstrap";
 import { connect } from "react-redux";
 import classNames from "classnames";
+import Badge from "react-bootstrap/Badge";
 
 import { api } from "../axios";
 import { getRooms } from "../redux/middleware/room";
 import styles from "./Sidebar.module.css";
-
 
 function Sidebar(props) {
   const { user, rooms, messages, activeRoomId, socket, getRooms } = props;
@@ -36,23 +36,32 @@ function Sidebar(props) {
 
   return (
     <Nav
-        variant="tabs"
-        activeKey={activeRoomId?.toString()}
-        className={classNames("flex-column", styles.nav)}
+      variant="tabs"
+      activeKey={activeRoomId?.toString()}
+      className={classNames("flex-column", styles.nav)}
     >
       {rooms.map((room, index) => {
         const unseenMessageCount = getUnseenMessageCountForRoom(room.id);
 
         return (
           <Nav.Item key={index} eventKey={room.id} className={styles.navItem}>
-            <LinkContainer className={styles.link}
+            <LinkContainer
+              className={styles.link}
               to={{
                 pathname: `/home/rooms/${room.id}`,
                 state: { room },
               }}
             >
               <Nav.Link eventKey={room.id} className={styles.navLink}>
-                {room.name} {!!unseenMessageCount && unseenMessageCount}
+                {room.name} {!!unseenMessageCount && (
+                    <Badge
+                        pill
+                        className={styles.badge}
+                        variant="secondary"
+                    >
+                        {unseenMessageCount}
+                    </Badge>
+                )}
               </Nav.Link>
             </LinkContainer>
           </Nav.Item>
@@ -66,7 +75,7 @@ const mapStateToProps = (state) => ({
   user: state.userReducer.user,
   rooms: state.roomReducer.rooms,
   messages: state.messageReducer.messages,
-  activeRoomId: state.tabReducer.activeRoomId
+  activeRoomId: state.tabReducer.activeRoomId,
 });
 
 export default connect(mapStateToProps, { getRooms })(Sidebar);
