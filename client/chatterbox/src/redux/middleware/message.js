@@ -13,12 +13,12 @@ import {
 import { api } from "../../axios";
 import queryString from "query-string";
 
-export function getMessages(userId, roomIds) {
+export function getMessages(userId, roomIds, page = 1) {
   return (dispatch) => {
     dispatch(getMessagesBegin());
 
     const queryStr = queryString.stringify(
-      { room_ids: roomIds },
+      { room_ids: roomIds, page: page },
       { arrayFormat: "none" }
     );
 

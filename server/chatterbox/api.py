@@ -264,12 +264,13 @@ class Memberships(Resource):
 class Messages(Resource):
     @jwt_required
     @use_args({
-        "room_ids": fields.List(fields.Int())
+        "room_ids": fields.List(fields.Int()),
+        "page": fields.Int(),
     }, location="query")
     def get(self, args, user_id, room_id=None):
         from .app import app
 
-        page = request.args.get('page', 1, type=int)
+        page = args.get('page', 1)
         room_ids = [room_id] if room_id else args.get('room_ids')
 
         if Membership.query.filter(
@@ -291,9 +292,11 @@ class Messages(Resource):
             ).label('rank')
         ).filter(Message.room_id.in_(room_ids)).subquery()
 
+        per_page = app.config['PAGINATION_PER_PAGE']
         message_dicts = db.session.query(subquery.c.id).filter(
-            subquery.c.rank <= app.config['PAGINATION_PER_PAGE']).order_by(
-            subquery.c.rank.desc()).all()
+            subquery.c.rank.between(
+                ((page - 1) * per_page + 1), page * per_page)
+        ).order_by(subquery.c.rank.desc()).all()
 
         message_ids = [id_ for (id_,) in message_dicts]
 
@@ -310,10 +313,17 @@ class Messages(Resource):
         for m in messages_serialized:
             messages_by_room_id[m['room_id']].append(m)
 
+        page_counts_by_room_id = db.session.query(
+            Message.room_id,
+            (func.count(Message.id) / 30 + 1).label('count')
+        ).filter(Message.room_id.in_(room_ids)).group_by(Message.room_id).all()
+
+        page_counts = {r.room_id: r.count for r in page_counts_by_room_id}
         return make_response(jsonify(
             messages=messages_by_room_id,
             room_ids=room_ids,
-            page=page
+            page=page,
+            page_counts=page_counts
         ), 200)
 
 

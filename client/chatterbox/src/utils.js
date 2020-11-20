@@ -24,3 +24,12 @@ export const toIsoStringKeepTimezone = (date) => {
   const localIsoTime = new Date(date - tzoffset).toISOString();
   return localIsoTime;
 };
+
+export const setServerErrors = (errors, setError) => {
+    Object.keys(errors).forEach((key) => {
+      setError(key, {
+        type: "server",
+        message: errors[key].message,
+      });
+    });
+  };

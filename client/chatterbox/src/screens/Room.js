@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
-import Navbar from "react-bootstrap/Navbar";
-import Nav from "react-bootstrap/Nav";
-import DropdownButton from "react-bootstrap/DropdownButton";
-import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
-import NavDropdown from "react-bootstrap/NavDropdown";
-import Modal from "react-bootstrap/Modal";
 import InputGroup from "react-bootstrap/InputGroup";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
-import classNames from "classnames";
+import Spinner from "react-bootstrap/Spinner";
 
 import { getRooms, leaveRoom, deleteRoom } from "../redux/middleware/room";
 import {
@@ -21,6 +13,7 @@ import {
   setMessageSeen,
 } from "../redux/middleware/message";
 import { setActiveRoomId } from "../redux/actions/tab";
+import RoomHeader from "../components/RoomHeader";
 import MessageItem from "../components/MessageItem";
 import styles from "./Room.module.css";
 
@@ -30,6 +23,9 @@ function Room(props) {
     user,
     rooms,
     messages: allRoomMessages,
+    loading: messagesLoading,
+    pages,
+    pageCounts,
     getRooms,
     leaveRoom,
     deleteRoom,
@@ -47,12 +43,11 @@ function Room(props) {
   const [fetchedRooms, setFetchedRooms] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [showLeaveRoomModal, setShowLeaveRoomModal] = useState(false);
-  const [showDeleteRoomModal, setShowDeleteRoomModal] = useState(false);
-  const [
-    createdSocketMessageListener,
-    setCreatedSocketMessageListener,
-  ] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isAtTop, setIsAtTop] = useState(false);
+  const [createdMessageListener, setCreatedMessageListener] = useState(false);
+  const bottomRef = useRef();
+  const messagesRef = useRef();
 
   useEffect(() => {
     if (user && !rooms.length && !fetchedRooms) {
@@ -83,20 +78,13 @@ function Room(props) {
     if (room) {
       setActiveRoomId(room.id);
     }
-  }, [room]);
+  }, [room, setActiveRoomId]);
 
   useEffect(() => {
     if (room) {
       setMessageSeen(user.id, room.id, [], true, true);
     }
-  }, [room]);
-
-  useEffect(() => {
-    if (room && !(room.id in allRoomMessages)) {
-      console.log(`Getting messages in room ${room.name}.`);
-      getMessages(user.id, [room.id]);
-    }
-  }, [room, allRoomMessages, getMessages, user.id]);
+  }, [user.id, room, setMessageSeen]);
 
   useEffect(() => {
     if (room && room.id in allRoomMessages) {
@@ -105,7 +93,7 @@ function Room(props) {
   }, [room, allRoomMessages]);
 
   useEffect(() => {
-    if (user && createdSocket && !createdSocketMessageListener) {
+    if (user && createdSocket && !createdMessageListener) {
       socket.on("message event", (response) => {
         const { status_code, message } = response;
         const seenStatus = activeRoomId === message.room_id;
@@ -117,13 +105,21 @@ function Room(props) {
         }
       });
 
-      setCreatedSocketMessageListener(true);
+      setCreatedMessageListener(true);
 
       return () => {
         socket.removeAllListeners("message event");
-      };
+    };
     }
-  }, [activeRoomId, createdSocket, socket, addMessageAndSetSeen, user]);
+  }, [user, createdSocket, createdMessageListener, socket, activeRoomId, addMessageAndSetSeen]);
+
+  useEffect(() => {
+    if (!room) {
+      return;
+    }
+    const hasMoreMessages = pages?.[room?.id] < pageCounts?.[room?.id];
+    setHasMoreMessages(hasMoreMessages);
+  }, [room, pages, pageCounts]);
 
   const onClick = (event) => {
     event.preventDefault();
@@ -141,39 +137,58 @@ function Room(props) {
     setMessage(event.target.value);
   };
 
-  const getMessageSeenStatus = (message) => {
-    return (
-      !!message.seens &&
-      !!message.seens.find((seen) => seen.user_id === user.id) &&
-      message.seens.find((seen) => seen.user_id === user.id).status
-    );
-  };
-
-  const onClickLeaveAction = () => {
-    setShowLeaveRoomModal(true);
-  };
-
-  const onClickDeleteAction = () => {
-    setShowDeleteRoomModal(true);
-  };
-
-  const onHideLeaveRoomModal = () => {
-    setShowLeaveRoomModal(false);
-  };
-
-  const onHideDeleteRoomModal = () => {
-    setShowDeleteRoomModal(false);
-  };
-
-  const onConfirmLeaveRoomModal = () => {
+  const onConfirmLeave = () => {
     leaveRoom(user.id, room.id);
-    setShowLeaveRoomModal(false);
   };
 
-  const onConfirmDeleteRoomModal = () => {
+  const onConfirmDelete = () => {
     deleteRoom(user.id, room.id);
-    setShowDeleteRoomModal(false);
   };
+
+  const loadMoreMessages = useCallback(() => {
+    if (!user || !room || messagesLoading) {
+      return;
+    }
+    const page = room.id in pages ? pages[room.id] + 1 : 1;
+    if (page > pageCounts?.[room.id]) {
+      return;
+    }
+    getMessages(user.id, room.id, page);
+  }, [getMessages, messagesLoading, pages, pageCounts, room, user]);
+
+  useEffect(() => {
+    loadMoreMessages();
+  }, [room, loadMoreMessages]);
+
+  const onScroll = (e) => {
+    setIsAtTop(e.target.scrollTop === 0);
+//    setIsAtBottom(
+//      e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight
+//    );
+  };
+
+  const scrollToBottom = useCallback(() => {
+    if (!bottomRef.current) {
+      return;
+    }
+    bottomRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [bottomRef]);
+
+  useEffect(() => {
+    if (!room || !pages) return;
+
+    if (pages?.[room.id] === 1) {
+      scrollToBottom();
+    } else {
+      messagesRef.current.scrollTop = 50;
+    }
+  }, [messages, pages, room, scrollToBottom]);
+
+  useEffect(() => {
+    if (isAtTop && hasMoreMessages) {
+      loadMoreMessages();
+    }
+  }, [isAtTop, hasMoreMessages, loadMoreMessages]);
 
   if (noRoom) {
     return <Redirect to="/home" />;
@@ -181,42 +196,33 @@ function Room(props) {
 
   return (
     <div>
-      <Navbar bg="light" expand="lg">
-        <Navbar.Brand className={styles.roomName}>
-            {room?.name}
-        </Navbar.Brand>
-        <Navbar.Toggle />
-        <Navbar.Collapse>
-          <InputGroup className={styles.input}>
-            <Form.Control
-              placeholder="Search Messages..."
-            />
-            <InputGroup.Append>
-              <Button variant="dark">
-                <FontAwesomeIcon icon={faSearch} /> Search
-              </Button>
-            </InputGroup.Append>
-          </InputGroup>
-          <Nav className="ml-auto">
-            <NavDropdown title="Actions" id="actions-dropdown">
-              <NavDropdown.Item onClick={onClickLeaveAction}>
-                Leave Room
-              </NavDropdown.Item>
-              {user?.id === room?.created_by && (
-                <NavDropdown.Item onClick={onClickDeleteAction}>
-                  Delete Room
-                </NavDropdown.Item>
-              )}
-            </NavDropdown>
-          </Nav>
-        </Navbar.Collapse>
-      </Navbar>
+      <RoomHeader
+        user={user}
+        room={room}
+        onConfirmLeave={onConfirmLeave}
+        onConfirmDelete={onConfirmDelete}
+      />
       <div className={styles.chat}>
-        <div className={styles.messages}>
-          {messages.map((message, index) => (
-            <MessageItem key={index} message={message} user={user} />
-          ))}
+        <div className={styles.messages} onScroll={onScroll} ref={messagesRef}>
+          <div>
+            {messagesLoading && (
+                <div className={styles.spinnerContainer}>
+                  <Spinner animation="border" role="status" key={"spinner"}>
+                    <span className="sr-only">Loading...</span>
+                  </Spinner>
+              </div>
+            )}
+            {!hasMoreMessages && (
+              <div className={styles.chatBeginning}>(Beginning of chat)</div>
+            )}
+            {messages.map((message, index) => (
+              <MessageItem key={index} message={message} user={user} />
+            ))}
+          </div>
+          <div ref={bottomRef} key={"bottom"}></div>
         </div>
+
+            <Form onSubmit={onClick}>
         <InputGroup className="mb-3">
           <Form.Control
             name="message"
@@ -226,50 +232,13 @@ function Room(props) {
             onChange={onChange}
           />
           <InputGroup.Append>
-            <Button variant="dark" onClick={onClick}>
+            <Button type="submit" variant="dark" onClick={onClick}>
               Send!
             </Button>
           </InputGroup.Append>
         </InputGroup>
+          </Form>
       </div>
-
-      {room && (
-        <div>
-          <Modal show={showLeaveRoomModal} onHide={onHideLeaveRoomModal}>
-            <Modal.Header closeButton>
-              <Modal.Title>Leave Room</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <h4>Are you sure you want to leave room {room.name}?</h4>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={onHideLeaveRoomModal}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={onConfirmLeaveRoomModal}>
-                Confirm
-              </Button>
-            </Modal.Footer>
-          </Modal>
-
-          <Modal show={showDeleteRoomModal} onHide={onHideDeleteRoomModal}>
-            <Modal.Header closeButton>
-              <Modal.Title>Delete Room</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <h4>Are you sure you want to delete room {room.name}?</h4>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={onHideDeleteRoomModal}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={onConfirmDeleteRoomModal}>
-                Confirm
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        </div>
-      )}
     </div>
   );
 }
@@ -279,6 +248,9 @@ const mapStateToProps = (state) => ({
   tokens: state.userReducer.tokens,
   rooms: state.roomReducer.rooms,
   messages: state.messageReducer.messages,
+  loading: state.messageReducer.loading,
+  pages: state.messageReducer.pages,
+  pageCounts: state.messageReducer.pageCounts,
   activeRoomId: state.tabReducer.activeRoomId,
 });
 

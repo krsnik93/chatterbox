@@ -9,6 +9,7 @@ import Button from "react-bootstrap/Button";
 import classNames from "classnames";
 
 import { loginUser } from "../redux/middleware/user";
+import { setServerErrors } from "../utils";
 import styles from "./LoginForm.module.css";
 
 function LoginForm(props) {
@@ -22,20 +23,12 @@ function LoginForm(props) {
     },
   });
 
-  const { touched, dirtyFields, submitCount } = formState;
+  const { submitCount } = formState;
   const [validated, setValidated] = useState(false);
-  const setServerErrors = (errors) => {
-    Object.keys(errors).forEach((key) => {
-      setError(key, {
-        type: "server",
-        message: errors[key].message,
-      });
-    });
-  };
 
   useEffect(() => {
-    setServerErrors(errorsServer);
-  }, [errorsServer]);
+    setServerErrors(errorsServer, setError);
+  }, [errorsServer, setError]);
 
   useEffect(() => {
     if (!Object.values(errors).some((error) => error !== null)) {

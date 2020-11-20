@@ -8,6 +8,7 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import classNames from "classnames";
 import { signUpUser } from "../redux/middleware/user";
+import { setServerErrors } from "../utils";
 import styles from "./SignUpForm.module.css";
 
 function SignUpForm(props) {
@@ -21,20 +22,12 @@ function SignUpForm(props) {
       password: "",
     },
   });
-  const { touched, dirtyFields, submitCount } = formState;
+  const { submitCount } = formState;
   const [validated, setValidated] = useState(false);
-  const setServerErrors = (errors) => {
-    Object.keys(errors).forEach((key) => {
-      setError(key, {
-        type: "server",
-        message: errors[key].message,
-      });
-    });
-  };
 
   useEffect(() => {
-    setServerErrors(errorsServer);
-  }, [errorsServer]);
+    setServerErrors(errorsServer, setError);
+  }, [errorsServer, setError]);
 
   useEffect(() => {
     if (!Object.values(errors).some((error) => error !== null)) {

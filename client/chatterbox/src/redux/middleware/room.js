@@ -12,7 +12,6 @@ import {
   deleteRoomSuccess,
   deleteRoomFailure,
 } from "../actions/room";
-import { createMemberships } from "../middleware/membership";
 
 import { api } from "../../axios";
 

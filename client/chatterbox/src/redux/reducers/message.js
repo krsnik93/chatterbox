@@ -13,6 +13,7 @@ import {
 const initialState = {
   messages: {},
   pages: {},
+  pageCounts: {},
   loading: false,
   error: null,
 };
@@ -27,11 +28,12 @@ const messageReducer = (state = initialState, action) => {
       };
     case GET_MESSAGES_SUCCESS:
       return {
-        ...state,
-        messages: {
-          ...state.messages,
-          ...action.payload.messages,
-        },
+        messages: Object.fromEntries(
+          Object.entries(action.payload.messages).map(([roomId, msgs]) => [
+            roomId,
+            msgs.concat(state.messages?.[roomId] || []),
+          ])
+        ),
         pages: {
           ...state.pages,
           ...Object.fromEntries(
@@ -40,6 +42,10 @@ const messageReducer = (state = initialState, action) => {
               action.payload.page,
             ])
           ),
+        },
+        pageCounts: {
+          ...state.pageCounts,
+          ...action.payload.page_counts,
         },
         loading: false,
         error: null,

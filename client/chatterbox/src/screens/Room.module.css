@@ -1,20 +1,28 @@
-.roomName {
-    width: 30ch;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 .chat {
     padding: 10px;
+}
+.chatBeginning {
+    text-align: center;
+}
+.scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.spinnerContainer {
+    display: flex;
+    justify-content: center;
 }
 .messages {
   height: calc(100vh - 56px - 56px - 10px - 10px - 38px - 10px - 16px);
   border: 1px solid #cccccc;
   border-radius: 0.25em;
-  min-height: 300px;
-  min-width: 200px;
   padding: 15px;
   overflow-y: scroll;
   margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .input {
     max-width: 300px;

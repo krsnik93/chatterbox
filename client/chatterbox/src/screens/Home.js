@@ -4,7 +4,6 @@ import {
   Switch,
   Redirect,
   useRouteMatch,
-  useLocation,
 } from "react-router-dom";
 import { connect } from "react-redux";
 import Tab from "react-bootstrap/Tab";
@@ -16,11 +15,9 @@ import Room from "./Room";
 import Header from "../components/Header";
 import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
-import { getMessages, addMessageAndSetSeen } from "../redux/middleware/message";
 import Sidebar from "../components/Sidebar";
 import Welcome from "../screens/Welcome";
 import styles from "./Home.module.css";
-import { isUserLoggedIn } from "../utils";
 
 const ENDPOINT = "http://127.0.0.1:5000";
 
@@ -28,12 +25,9 @@ function Home(props) {
   const {
     user,
     rooms,
-    tokens,
     getRooms,
     logoutUser,
-    addMessageAndSetSeen,
     addRoom,
-    getMessages,
   } = props;
   const { path } = useRouteMatch();
   const [socket, setSocket] = useState(null);
@@ -45,7 +39,7 @@ function Home(props) {
     if (!user) {
       logoutUser();
     }
-  }, [user]);
+  }, [user, logoutUser]);
 
   useEffect(() => {
     if (!createdSocket) {
@@ -73,6 +67,7 @@ function Home(props) {
         if (status_code === 200) {
           addRoom(room);
         } else {
+          console.error(message);
           console.error(response);
         }
       });
@@ -82,13 +77,13 @@ function Home(props) {
 
       return () => socket.disconnect();
     }
-  }, []);
+  }, [createdSocket, addRoom]);
 
   useEffect(() => {
     if (user && !fetchedRooms) {
       getRooms(user.id).then(() => setFetchedRooms(true));
     }
-  }, [user, getRooms]);
+  }, [user, fetchedRooms, getRooms]);
 
   useEffect(() => {
     if (socket && user && fetchedRooms && !joinedRooms) {
@@ -100,13 +95,6 @@ function Home(props) {
       setJoinedRooms(true);
     }
   }, [socket, user, rooms, fetchedRooms, joinedRooms]);
-
-  useEffect(() => {
-    if (user && fetchedRooms) {
-      const roomIds = rooms.map((room) => room.id);
-      getMessages(user.id, roomIds);
-    }
-  }, [user, rooms, fetchedRooms]);
 
   if (!user) return <Redirect to="/login" />;
 
@@ -147,7 +135,5 @@ const mapStateToProps = (state) => ({
 export default connect(mapStateToProps, {
   getRooms,
   logoutUser,
-  addMessageAndSetSeen,
   addRoom,
-  getMessages,
 })(Home);

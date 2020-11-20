@@ -5,12 +5,10 @@ import { connect } from "react-redux";
 import classNames from "classnames";
 import Badge from "react-bootstrap/Badge";
 
-import { api } from "../axios";
-import { getRooms } from "../redux/middleware/room";
 import styles from "./Sidebar.module.css";
 
 function Sidebar(props) {
-  const { user, rooms, messages, activeRoomId, socket, getRooms } = props;
+  const { user, rooms, messages, activeRoomId } = props;
   const [unseenMessageCounts, setUnseenMessageCounts] = useState({});
 
   useEffect(() => {
@@ -28,7 +26,7 @@ function Sidebar(props) {
       );
       setUnseenMessageCounts(counts);
     }
-  }, [messages]);
+  }, [user.id, messages]);
 
   const getUnseenMessageCountForRoom = (roomId) => {
     return roomId in unseenMessageCounts ? unseenMessageCounts[roomId] : 0;
@@ -44,7 +42,7 @@ function Sidebar(props) {
         const unseenMessageCount = getUnseenMessageCountForRoom(room.id);
 
         return (
-          <Nav.Item key={index} eventKey={room.id} className={styles.navItem}>
+          <Nav.Item key={index} className={styles.navItem}>
             <LinkContainer
               className={styles.link}
               to={{
@@ -75,4 +73,4 @@ const mapStateToProps = (state) => ({
   activeRoomId: state.tabReducer.activeRoomId,
 });
 
-export default connect(mapStateToProps, { getRooms })(Sidebar);
+export default connect(mapStateToProps, null )(Sidebar);
