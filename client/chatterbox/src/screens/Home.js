@@ -77,7 +77,6 @@ function Home(props) {
 
     setCreatedListeners(true);
 
-    return () => socket.disconnect();
   }, [socket, createdListeners, addRoom]);
 
   useEffect(() => {
