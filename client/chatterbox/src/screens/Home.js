@@ -11,7 +11,7 @@ import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
 import Sidebar from "../components/Sidebar";
 import Welcome from "../screens/Welcome";
-import {SocketContext} from "../contexts";
+import { SocketContext } from "../contexts";
 import styles from "./Home.module.css";
 
 function Home(props) {
@@ -21,7 +21,6 @@ function Home(props) {
   const [fetchedRooms, setFetchedRooms] = useState(false);
   const [joinedRooms, setJoinedRooms] = useState(false);
   const [createdListeners, setCreatedListeners] = useState(false);
-  const ENDPOINT = "http://localhost:5000";
 
   useEffect(() => {
     if (!user) {
@@ -47,7 +46,7 @@ function Home(props) {
     }
 
     socket.on("connect", (data) => {
-        console.log(data);
+      console.log(data);
     });
 
     socket.on("disconnect", (data) => {
@@ -76,8 +75,10 @@ function Home(props) {
       }
     });
 
+    setCreatedListeners(true);
+
     return () => socket.disconnect();
-  }, [socket]);
+  }, [socket, createdListeners, addRoom]);
 
   useEffect(() => {
     if (user && !fetchedRooms) {

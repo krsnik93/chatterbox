@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from "react";
 import { useParams, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import Button from "react-bootstrap/Button";
@@ -6,7 +12,7 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Spinner from "react-bootstrap/Spinner";
 
-import { getRooms, leaveRoom, deleteRoom } from "../redux/middleware/room";
+import { leaveRoom, deleteRoom } from "../redux/middleware/room";
 import {
   getMessages,
   addMessageAndSetSeen,
@@ -15,7 +21,7 @@ import {
 import { setActiveRoomId } from "../redux/actions/tab";
 import RoomHeader from "../components/RoomHeader";
 import MessageItem from "../components/MessageItem";
-import {SocketContext} from "../contexts";
+import { SocketContext } from "../contexts";
 import styles from "./Room.module.css";
 
 function Room(props) {
@@ -27,7 +33,6 @@ function Room(props) {
     loading: messagesLoading,
     pages,
     pageCounts,
-    getRooms,
     leaveRoom,
     deleteRoom,
     getMessages,
@@ -50,13 +55,14 @@ function Room(props) {
   const messagesRef = useRef();
 
   useEffect(() => {
-    const matchingRooms = rooms.filter(room => room.id === parseInt(roomId, 10));
+    const matchingRooms = rooms.filter(
+      (room) => room.id === parseInt(roomId, 10)
+    );
     if (matchingRooms.length === 0) {
       setNoRoom(true);
-    }
-    else if (matchingRooms.length > 0) {
-        const room = matchingRooms.pop();
-        setRoom(room);
+    } else if (matchingRooms.length > 0) {
+      const room = matchingRooms.pop();
+      setRoom(room);
     }
   }, [rooms, roomId]);
 
@@ -84,7 +90,6 @@ function Room(props) {
     }
 
     socket.on("message event", (response) => {
-      console.log('received message');
       const { status_code, message } = response;
       const seenStatus = activeRoomId === message.room_id;
       if (status_code === 200) {
@@ -95,7 +100,6 @@ function Room(props) {
     });
 
     setCreatedMessageListener(true);
-
   }, [
     user,
     socket,
@@ -136,30 +140,6 @@ function Room(props) {
     deleteRoom(user.id, room.id);
   };
 
-  const loadMoreMessages = useCallback(() => {
-    if (!user || !room || messagesLoading) {
-      return;
-    }
-    const page = room.id in pages ? pages[room.id] + 1 : 1;
-    if (page > pageCounts?.[room.id]) {
-      return;
-    }
-    getMessages(user.id, room.id, page);
-  }, [user, room, messagesLoading, pages, pageCounts]);
-
-    useEffect(() => {
-      if (!room || loadedInitially) return;
-      loadMoreMessages();
-      setLoadedInitially(true);
-    }, [room, loadMoreMessages, loadedInitially]);
-
-  const onScroll = (e) => {
-    setIsAtTop(e.target.scrollTop === 0);
-    //    setIsAtBottom(
-    //      e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight
-    //    );
-  };
-
   const scrollToBottom = useCallback(() => {
     if (!bottomRef.current) {
       return;
@@ -167,21 +147,52 @@ function Room(props) {
     bottomRef.current.scrollIntoView({ behavior: "smooth" });
   }, [bottomRef]);
 
-    useEffect(() => {
-      if (!room || !pages) return;
+  useEffect(() => {
+    if (!room || !(room.id in pages)) return;
 
-      if (pages?.[room.id] === 1) {
-        scrollToBottom();
-      } else {
-        messagesRef.current.scrollTop = 50;
-      }
-    }, [messages, pages, room, scrollToBottom]);
+    if (pages?.[room.id] === 1) {
+      scrollToBottom();
+    } else {
+      messagesRef.current.scrollTop = 50;
+      setIsAtTop(false);
+    }
+  }, [messages, pages, room, scrollToBottom]);
 
-    useEffect(() => {
-      if (isAtTop && hasMoreMessages) {
-        loadMoreMessages();
-      }
-    }, [isAtTop, hasMoreMessages, loadMoreMessages]);
+  const loadMoreMessages = useCallback(() => {
+    if (!user || !room || messagesLoading) {
+      return;
+    }
+
+    if (loadedInitially && !isAtTop) {
+        return;
+    }
+
+    const page = room.id in pages ? pages[room.id] + 1 : 1;
+    if (page > pageCounts?.[room.id]) {
+      return;
+    }
+
+    console.log(`Getting page ${page} messages for room ${room.id}.`);
+    getMessages(user.id, room.id, page);
+
+  }, [user, room, messagesLoading, isAtTop, pages, pageCounts, loadedInitially, getMessages]);
+
+  useEffect(() => {
+    if (!room || loadedInitially) return;
+    loadMoreMessages();
+    setLoadedInitially(true);
+  }, [room, loadMoreMessages, loadedInitially]);
+
+  const onScroll = (e) => {
+    setIsAtTop(e.target.scrollTop === 0);
+  };
+
+  useEffect(() => {
+    if (isAtTop && hasMoreMessages) {
+      loadMoreMessages();
+    }
+    return (() => setIsAtTop(false));
+  }, [isAtTop, hasMoreMessages, loadMoreMessages]);
 
   if (noRoom) {
     return <Redirect to="/home" />;
@@ -248,7 +259,6 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, {
-  getRooms,
   getMessages,
   setActiveRoomId,
   leaveRoom,
