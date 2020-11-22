@@ -73,4 +73,4 @@ const mapStateToProps = (state) => ({
   activeRoomId: state.tabReducer.activeRoomId,
 });
 
-export default connect(mapStateToProps, null )(Sidebar);
+export default connect(mapStateToProps, null)(Sidebar);

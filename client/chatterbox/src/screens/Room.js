@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useParams, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import Button from "react-bootstrap/Button";
@@ -15,6 +15,7 @@ import {
 import { setActiveRoomId } from "../redux/actions/tab";
 import RoomHeader from "../components/RoomHeader";
 import MessageItem from "../components/MessageItem";
+import {SocketContext} from "../contexts";
 import styles from "./Room.module.css";
 
 function Room(props) {
@@ -34,43 +35,28 @@ function Room(props) {
     addMessageAndSetSeen,
     setMessageSeen,
     activeRoomId,
-    socket,
-    createdSocket,
   } = props;
 
+  const socket = useContext(SocketContext);
   const [room, setRoom] = useState(null);
   const [noRoom, setNoRoom] = useState(false);
-  const [fetchedRooms, setFetchedRooms] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isAtTop, setIsAtTop] = useState(false);
   const [createdMessageListener, setCreatedMessageListener] = useState(false);
+  const [loadedInitially, setLoadedInitially] = useState(false);
   const bottomRef = useRef();
   const messagesRef = useRef();
 
   useEffect(() => {
-    if (user && !rooms.length && !fetchedRooms) {
-      getRooms(user.id).then(() => setFetchedRooms(true));
-    }
-  }, [user, rooms.length, getRooms, fetchedRooms]);
-
-  useEffect(() => {
-    if (
-      rooms &&
-      rooms.filter((room) => room.id === parseInt(roomId)).length === 0
-    ) {
-      console.log("noRoom");
+    const matchingRooms = rooms.filter(room => room.id === parseInt(roomId, 10));
+    if (matchingRooms.length === 0) {
       setNoRoom(true);
     }
-  }, [rooms, roomId]);
-
-  useEffect(() => {
-    if (rooms.length > 0) {
-      const room = rooms.filter((r) => r.id === parseInt(roomId, 10)).pop();
-      if (room) {
+    else if (matchingRooms.length > 0) {
+        const room = matchingRooms.pop();
         setRoom(room);
-      }
     }
   }, [rooms, roomId]);
 
@@ -93,25 +79,30 @@ function Room(props) {
   }, [room, allRoomMessages]);
 
   useEffect(() => {
-    if (user && createdSocket && !createdMessageListener) {
-      socket.on("message event", (response) => {
-        const { status_code, message } = response;
-        const seenStatus = activeRoomId === message.room_id;
-
-        if (status_code === 200) {
-          addMessageAndSetSeen(user.id, message.room_id, message, seenStatus);
-        } else {
-          console.error(message);
-        }
-      });
-
-      setCreatedMessageListener(true);
-
-      return () => {
-        socket.removeAllListeners("message event");
-    };
+    if (!activeRoomId || createdMessageListener) {
+      return;
     }
-  }, [user, createdSocket, createdMessageListener, socket, activeRoomId, addMessageAndSetSeen]);
+
+    socket.on("message event", (response) => {
+      console.log('received message');
+      const { status_code, message } = response;
+      const seenStatus = activeRoomId === message.room_id;
+      if (status_code === 200) {
+        addMessageAndSetSeen(user.id, message.room_id, message, seenStatus);
+      } else {
+        console.error(message);
+      }
+    });
+
+    setCreatedMessageListener(true);
+
+  }, [
+    user,
+    socket,
+    createdMessageListener,
+    activeRoomId,
+    addMessageAndSetSeen,
+  ]);
 
   useEffect(() => {
     if (!room) {
@@ -121,7 +112,7 @@ function Room(props) {
     setHasMoreMessages(hasMoreMessages);
   }, [room, pages, pageCounts]);
 
-  const onClick = (event) => {
+  const onSubmit = (event) => {
     event.preventDefault();
     socket.emit("message event", {
       room: room.id,
@@ -154,17 +145,19 @@ function Room(props) {
       return;
     }
     getMessages(user.id, room.id, page);
-  }, [getMessages, messagesLoading, pages, pageCounts, room, user]);
+  }, [user, room, messagesLoading, pages, pageCounts]);
 
-  useEffect(() => {
-    loadMoreMessages();
-  }, [room, loadMoreMessages]);
+    useEffect(() => {
+      if (!room || loadedInitially) return;
+      loadMoreMessages();
+      setLoadedInitially(true);
+    }, [room, loadMoreMessages, loadedInitially]);
 
   const onScroll = (e) => {
     setIsAtTop(e.target.scrollTop === 0);
-//    setIsAtBottom(
-//      e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight
-//    );
+    //    setIsAtBottom(
+    //      e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight
+    //    );
   };
 
   const scrollToBottom = useCallback(() => {
@@ -174,21 +167,21 @@ function Room(props) {
     bottomRef.current.scrollIntoView({ behavior: "smooth" });
   }, [bottomRef]);
 
-  useEffect(() => {
-    if (!room || !pages) return;
+    useEffect(() => {
+      if (!room || !pages) return;
 
-    if (pages?.[room.id] === 1) {
-      scrollToBottom();
-    } else {
-      messagesRef.current.scrollTop = 50;
-    }
-  }, [messages, pages, room, scrollToBottom]);
+      if (pages?.[room.id] === 1) {
+        scrollToBottom();
+      } else {
+        messagesRef.current.scrollTop = 50;
+      }
+    }, [messages, pages, room, scrollToBottom]);
 
-  useEffect(() => {
-    if (isAtTop && hasMoreMessages) {
-      loadMoreMessages();
-    }
-  }, [isAtTop, hasMoreMessages, loadMoreMessages]);
+    useEffect(() => {
+      if (isAtTop && hasMoreMessages) {
+        loadMoreMessages();
+      }
+    }, [isAtTop, hasMoreMessages, loadMoreMessages]);
 
   if (noRoom) {
     return <Redirect to="/home" />;
@@ -206,10 +199,10 @@ function Room(props) {
         <div className={styles.messages} onScroll={onScroll} ref={messagesRef}>
           <div>
             {messagesLoading && (
-                <div className={styles.spinnerContainer}>
-                  <Spinner animation="border" role="status" key={"spinner"}>
-                    <span className="sr-only">Loading...</span>
-                  </Spinner>
+              <div className={styles.spinnerContainer}>
+                <Spinner animation="border" role="status" key={"spinner"}>
+                  <span className="sr-only">Loading...</span>
+                </Spinner>
               </div>
             )}
             {!hasMoreMessages && (
@@ -222,22 +215,22 @@ function Room(props) {
           <div ref={bottomRef} key={"bottom"}></div>
         </div>
 
-            <Form onSubmit={onClick}>
-        <InputGroup className="mb-3">
-          <Form.Control
-            name="message"
-            type="text"
-            placeholder="Type a Message..."
-            value={message}
-            onChange={onChange}
-          />
-          <InputGroup.Append>
-            <Button type="submit" variant="dark" onClick={onClick}>
-              Send!
-            </Button>
-          </InputGroup.Append>
-        </InputGroup>
-          </Form>
+        <Form onSubmit={onSubmit}>
+          <InputGroup className="mb-3">
+            <Form.Control
+              name="message"
+              type="text"
+              placeholder="Type a Message..."
+              value={message}
+              onChange={onChange}
+            />
+            <InputGroup.Append>
+              <Button type="submit" variant="dark" onClick={onSubmit}>
+                Send!
+              </Button>
+            </InputGroup.Append>
+          </InputGroup>
+        </Form>
       </div>
     </div>
   );

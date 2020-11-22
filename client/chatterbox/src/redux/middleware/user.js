@@ -63,7 +63,5 @@ export function signUpUser(username, email, password) {
 export function logoutUser() {
   return (dispatch) => {
     dispatch(authUserBegin());
-    localStorage.removeItem("state.userReducer.user");
-    localStorage.removeItem("state.userReducer.tokens");
   };
 }

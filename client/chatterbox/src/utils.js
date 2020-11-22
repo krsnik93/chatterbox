@@ -26,10 +26,10 @@ export const toIsoStringKeepTimezone = (date) => {
 };
 
 export const setServerErrors = (errors, setError) => {
-    Object.keys(errors).forEach((key) => {
-      setError(key, {
-        type: "server",
-        message: errors[key].message,
-      });
+  Object.keys(errors).forEach((key) => {
+    setError(key, {
+      type: "server",
+      message: errors[key].message,
     });
-  };
+  });
+};

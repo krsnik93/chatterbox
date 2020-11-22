@@ -5,8 +5,13 @@ from .database import session_scope
 from .models import User, Room, Message, Membership
 from .schemas import RoomSchema, MessageSchema
 
+
 Payload.max_decode_packets = 500
-socketio = SocketIO(cors_allowed_origins='*', logger=True)
+socketio = SocketIO(
+    cors_allowed_origins='*',
+    logger=True,
+    engineio_logger=True
+)
 
 
 @socketio.on('connect')
@@ -14,9 +19,9 @@ def test_connect():
     emit('connect', {'data': 'Connected'})
 
 
-@socketio.on('disconnect', namespace='/test')
+@socketio.on('disconnect')
 def test_disconnect():
-    print('Client disconnected')
+    emit('disconnect', {'data': 'Disconnected'})
 
 
 @socketio.on('join')
@@ -25,7 +30,11 @@ def on_join(data):
     room = data['room']
     join_room(room)
     print(f"User {username} has joined room '{room}'.")
-    emit(f"User {username} has joined room '{room}'.", room=room)
+    emit(
+        'join',
+        {'data': f"User '{username}' has joined room '{room}'."},
+        room=room
+    )
 
 
 @socketio.on('leave')
@@ -33,7 +42,11 @@ def on_leave(data):
     username = data['username']
     room = data['room']
     leave_room(room)
-    emit(f"User {username} has left room '{room}'.", room=room)
+    emit(
+        'leave',
+        {'data': f"User '{username}' has left room '{room}'."},
+        room=room
+    )
 
 
 @socketio.on('room event')
@@ -103,3 +116,4 @@ def message_event(data):
         }
 
     emit('message event', response, room=room)
+

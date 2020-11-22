@@ -14,11 +14,11 @@ def register_extensions(app):
     from .socketio import socketio
     from .extensions import (migrate, bcrypt, jwt, cors)
     db.init_app(app)
-    socketio.init_app(app)
     migrate.init_app(app, db)
     bcrypt.init_app(app)
     jwt.init_app(app)
     cors.init_app(app)
+    socketio.init_app(app)
     return app
 
 

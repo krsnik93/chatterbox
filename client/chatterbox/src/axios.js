@@ -30,7 +30,7 @@ api.interceptors.response.use(
     return response;
   },
   function (error) {
-    console.log("errors is ", error);
+    console.error(error);
     const errorResponse = error.response;
     if (isTokenExpiredError(errorResponse)) {
       return resetTokenAndReattemptRequest(error);

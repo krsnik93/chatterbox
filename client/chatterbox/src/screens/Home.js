@@ -1,15 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  Route,
-  Switch,
-  Redirect,
-  useRouteMatch,
-} from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { Route, Switch, Redirect, useRouteMatch } from "react-router-dom";
 import { connect } from "react-redux";
 import Tab from "react-bootstrap/Tab";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
-import io from "socket.io-client";
 
 import Room from "./Room";
 import Header from "../components/Header";
@@ -17,67 +11,73 @@ import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
 import Sidebar from "../components/Sidebar";
 import Welcome from "../screens/Welcome";
+import {SocketContext} from "../contexts";
 import styles from "./Home.module.css";
 
-const ENDPOINT = "http://127.0.0.1:5000";
-
 function Home(props) {
-  const {
-    user,
-    rooms,
-    getRooms,
-    logoutUser,
-    addRoom,
-  } = props;
+  const { user, tokens, rooms, getRooms, logoutUser, addRoom } = props;
   const { path } = useRouteMatch();
-  const [socket, setSocket] = useState(null);
+  const socket = useContext(SocketContext);
   const [fetchedRooms, setFetchedRooms] = useState(false);
   const [joinedRooms, setJoinedRooms] = useState(false);
-  const [createdSocket, setCreatedSocket] = useState(false);
+  const [createdListeners, setCreatedListeners] = useState(false);
+  const ENDPOINT = "http://localhost:5000";
 
   useEffect(() => {
     if (!user) {
+      localStorage.removeItem("state.userReducer.user");
+      localStorage.removeItem("state.userReducer.tokens");
       logoutUser();
     }
   }, [user, logoutUser]);
 
   useEffect(() => {
-    if (!createdSocket) {
-      const socket = io(ENDPOINT);
-      socket.on("connect", (data) => {
-        if (data !== undefined) {
-          console.log(data.data);
-        }
-      });
-
-      socket.on("join", (data) => {
-        if (data !== undefined) {
-          //console.log(data.data);
-        }
-      });
-
-      socket.on("leave", (data) => {
-        if (data !== undefined) {
-          //console.log(data.data);
-        }
-      });
-
-      socket.on("room event", (response) => {
-        const { status_code, message, room } = response;
-        if (status_code === 200) {
-          addRoom(room);
-        } else {
-          console.error(message);
-          console.error(response);
-        }
-      });
-
-      setSocket(socket);
-      setCreatedSocket(true);
-
-      return () => socket.disconnect();
+    if (!user || !tokens) return;
+    try {
+      localStorage.setItem("state.userReducer.user", JSON.stringify(user));
+      localStorage.setItem("state.userReducer.tokens", JSON.stringify(tokens));
+    } catch (err) {
+      console.log(err);
     }
-  }, [createdSocket, addRoom]);
+  }, [user, tokens]);
+
+  useEffect(() => {
+    if (createdListeners) {
+      return;
+    }
+
+    socket.on("connect", (data) => {
+        console.log(data);
+    });
+
+    socket.on("disconnect", (data) => {
+      console.log(data);
+    });
+
+    socket.on("join", (data) => {
+      if (data !== undefined) {
+        console.log(data);
+      }
+    });
+
+    socket.on("leave", (data) => {
+      if (data !== undefined) {
+        console.log(data);
+      }
+    });
+
+    socket.on("room event", (response) => {
+      const { status_code, message, room } = response;
+      if (status_code === 200) {
+        addRoom(room);
+      } else {
+        console.error(message);
+        console.error(response);
+      }
+    });
+
+    return () => socket.disconnect();
+  }, [socket]);
 
   useEffect(() => {
     if (user && !fetchedRooms) {
@@ -104,7 +104,7 @@ function Home(props) {
       <Tab.Container id="left-tabs-example" defaultActiveKey="first">
         <Row className={styles.row}>
           <Col sm={3} className={styles.column}>
-            <Sidebar socket={socket} />
+            <Sidebar />
           </Col>
           <Col sm={9} className={styles.column}>
             <Switch>
@@ -113,7 +113,7 @@ function Home(props) {
               </Route>
               <Route path={`${path}/rooms`}>
                 <Route path={`${path}/rooms/:roomId`}>
-                  <Room socket={socket} createdSocket={createdSocket} />
+                  <Room socket={socket} />
                 </Route>
               </Route>
               <Route path={`${path}/users`}>Users</Route>
