@@ -50,7 +50,6 @@ function Room(props) {
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isAtTop, setIsAtTop] = useState(false);
   const [createdMessageListener, setCreatedMessageListener] = useState(false);
-  const [loadedInitially, setLoadedInitially] = useState(false);
   const bottomRef = useRef();
   const messagesRef = useRef();
 
@@ -73,16 +72,15 @@ function Room(props) {
   }, [room, setActiveRoomId]);
 
   useEffect(() => {
+    if (!room) return;
+    setMessages([room.id] in allRoomMessages ? allRoomMessages[room.id] : []);
+  }, [room, allRoomMessages]);
+
+  useEffect(() => {
     if (room) {
       setMessageSeen(user.id, room.id, [], true, true);
     }
   }, [user.id, room, setMessageSeen]);
-
-  useEffect(() => {
-    if (room && room.id in allRoomMessages) {
-      setMessages(allRoomMessages[room.id]);
-    }
-  }, [room, allRoomMessages]);
 
   useEffect(() => {
     if (!activeRoomId || createdMessageListener) {
@@ -112,8 +110,9 @@ function Room(props) {
     if (!room) {
       return;
     }
-    const hasMoreMessages = pages?.[room?.id] < pageCounts?.[room?.id];
-    setHasMoreMessages(hasMoreMessages);
+    setHasMoreMessages(
+      !(room.id in pages) || pages[room.id] < pageCounts[room.id]
+    );
   }, [room, pages, pageCounts]);
 
   const onSubmit = (event) => {
@@ -158,13 +157,13 @@ function Room(props) {
     }
   }, [messages, pages, room, scrollToBottom]);
 
-  const loadMoreMessages = useCallback(() => {
-    if (!user || !room || messagesLoading) {
+  useEffect(() => {
+    if (!user || !room || messagesLoading || !hasMoreMessages) {
       return;
     }
 
-    if (loadedInitially && !isAtTop) {
-        return;
+    if (room.id in pages && !isAtTop) {
+      return;
     }
 
     const page = room.id in pages ? pages[room.id] + 1 : 1;
@@ -175,24 +174,21 @@ function Room(props) {
     console.log(`Getting page ${page} messages for room ${room.id}.`);
     getMessages(user.id, room.id, page);
 
-  }, [user, room, messagesLoading, isAtTop, pages, pageCounts, loadedInitially, getMessages]);
-
-  useEffect(() => {
-    if (!room || loadedInitially) return;
-    loadMoreMessages();
-    setLoadedInitially(true);
-  }, [room, loadMoreMessages, loadedInitially]);
+    return () => setIsAtTop(false);
+  }, [
+    user,
+    room,
+    messagesLoading,
+    isAtTop,
+    pages,
+    pageCounts,
+    getMessages,
+    hasMoreMessages,
+  ]);
 
   const onScroll = (e) => {
     setIsAtTop(e.target.scrollTop === 0);
   };
-
-  useEffect(() => {
-    if (isAtTop && hasMoreMessages) {
-      loadMoreMessages();
-    }
-    return (() => setIsAtTop(false));
-  }, [isAtTop, hasMoreMessages, loadMoreMessages]);
 
   if (noRoom) {
     return <Redirect to="/home" />;
