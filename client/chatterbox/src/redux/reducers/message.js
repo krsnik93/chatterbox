@@ -62,7 +62,7 @@ const messageReducer = (state = initialState, action) => {
     case ADD_MESSAGE_BEGIN:
       return {
         ...state,
-        loading: true,
+        //loading: true,
         error: null,
       };
     case ADD_MESSAGE_SUCCESS:
@@ -74,19 +74,19 @@ const messageReducer = (state = initialState, action) => {
             action.payload.message.room_id
           ].concat(action.payload.message),
         },
-        loading: false,
+        //loading: false,
         error: null,
       };
     case ADD_MESSAGE_FAILURE:
       return {
         ...state,
-        loading: false,
+        //loading: false,
         error: action.payload.error,
       };
     case SET_MESSAGE_SEEN_BEGIN:
       return {
         ...state,
-        loading: true,
+        //loading: true,
         error: null,
       };
     case SET_MESSAGE_SEEN_SUCCESS:
@@ -112,14 +112,14 @@ const messageReducer = (state = initialState, action) => {
       return {
         ...state,
         messages: newMessages,
-        loading: false,
+        //loading: false,
         error: null,
       };
 
     case SET_MESSAGE_SEEN_FAILURE:
       return {
         ...state,
-        loading: false,
+        //loading: false,
         error: action.payload.error,
       };
     default:
