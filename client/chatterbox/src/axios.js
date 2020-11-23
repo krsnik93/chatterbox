@@ -30,19 +30,17 @@ api.interceptors.response.use(
     return response;
   },
   function (error) {
-    console.error(error);
-    const errorResponse = error.response;
-    if (isTokenExpiredError(errorResponse)) {
+    if (isTokenExpiredError(error)) {
       return resetTokenAndReattemptRequest(error);
     }
     // If the error is due to other reasons, we just throw it back to axios
     return Promise.reject(error);
   }
 );
-function isTokenExpiredError(errorResponse) {
+function isTokenExpiredError(error) {
   return (
-    errorResponse.status === 401 &&
-    errorResponse.data.msg === "The access token has expired"
+    error?.response?.status === 401 &&
+    error?.response?.data?.msg === "The access token has expired"
   );
 }
 

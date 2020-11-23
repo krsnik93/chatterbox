@@ -5,6 +5,7 @@ import Nav from "react-bootstrap/Nav";
 import Spinner from "react-bootstrap/Spinner";
 import Badge from "react-bootstrap/Badge";
 import classNames from "classnames";
+import { toast } from "react-toastify";
 
 import { SocketContext } from "../contexts";
 import { getRooms } from "../redux/middleware/room";
@@ -16,6 +17,7 @@ function Sidebar(props) {
     user,
     rooms,
     loading,
+    error,
     page,
     pageCount,
     messages,
@@ -28,6 +30,11 @@ function Sidebar(props) {
   const [joinedRooms, setJoinedRooms] = useState({});
   const bottomRef = useRef();
   const roomsRef = useRef();
+
+  useEffect(() => {
+    if (!error) return;
+    toast.error(error);
+  }, [error]);
 
   useEffect(() => {
     setHasMoreRooms(!page || !pageCount || page < pageCount);
@@ -48,14 +55,23 @@ function Sidebar(props) {
   };
 
   useEffect(() => {
-    if (!user || loading || !hasMoreRooms) return;
+    if (!user || loading || error || !hasMoreRooms) return;
     const pg = page + 1 || 1;
     if (pageCount && pg > pageCount) return;
     if (pageCount && !isAtBottom) return;
     console.log(`Getting page ${pg} of rooms.`);
     getRooms(user.id, pg);
     return () => setIsAtBottom(false);
-  }, [user, page, pageCount, loading, isAtBottom, hasMoreRooms, getRooms]);
+  }, [
+    user,
+    page,
+    pageCount,
+    loading,
+    error,
+    isAtBottom,
+    hasMoreRooms,
+    getRooms,
+  ]);
 
   useEffect(() => {
     if (socket && user && page) {
@@ -143,6 +159,7 @@ const mapStateToProps = (state) => ({
   user: state.userReducer.user,
   rooms: state.roomReducer.rooms,
   loading: state.roomReducer.loadingGet,
+  error: state.roomReducer.errorGet,
   page: state.roomReducer.page,
   pageCount: state.roomReducer.pageCount,
   messages: state.messageReducer.messages,

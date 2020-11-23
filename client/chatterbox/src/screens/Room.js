@@ -11,6 +11,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Spinner from "react-bootstrap/Spinner";
+import { toast } from "react-toastify";
 
 import { leaveRoom, deleteRoom } from "../redux/middleware/room";
 import {
@@ -30,7 +31,10 @@ function Room(props) {
     user,
     rooms,
     messages: allRoomMessages,
-    messagesLoading,
+    loadingGetMessages,
+    errorGetMessages,
+    errorAddMessage,
+    errorSetSeenMessage,
     pages,
     pageCounts,
     leaveRoom,
@@ -158,7 +162,7 @@ function Room(props) {
   }, [messages, pages, room, scrollToBottom]);
 
   useEffect(() => {
-    if (!user || !room || messagesLoading || !hasMoreMessages) {
+    if (!user || !room || loadingGetMessages || !hasMoreMessages) {
       return;
     }
 
@@ -178,7 +182,7 @@ function Room(props) {
   }, [
     user,
     room,
-    messagesLoading,
+    loadingGetMessages,
     isAtTop,
     pages,
     pageCounts,
@@ -189,6 +193,21 @@ function Room(props) {
   const onScroll = (e) => {
     setIsAtTop(e.target.scrollTop === 0);
   };
+
+  useEffect(() => {
+    if (!errorGetMessages) return;
+    toast.error(errorGetMessages);
+  }, [errorGetMessages]);
+
+  useEffect(() => {
+    if (!errorAddMessage) return;
+    toast.error(errorAddMessage);
+  }, [errorAddMessage]);
+
+  useEffect(() => {
+    if (!errorSetSeenMessage) return;
+    toast.error(errorSetSeenMessage);
+  }, [errorSetSeenMessage]);
 
   if (noRoom) {
     return <Redirect to="/home" />;
@@ -205,7 +224,7 @@ function Room(props) {
       <div className={styles.chat}>
         <div className={styles.messages} onScroll={onScroll} ref={messagesRef}>
           <div>
-            {messagesLoading && (
+            {loadingGetMessages && (
               <div className={styles.spinnerContainer}>
                 <Spinner animation="border" role="status" key={"spinner"}>
                   <span className="sr-only">Loading...</span>
@@ -248,9 +267,12 @@ const mapStateToProps = (state) => ({
   tokens: state.userReducer.tokens,
   rooms: state.roomReducer.rooms,
   messages: state.messageReducer.messages,
-  messagesLoading: state.messageReducer.loadingGet,
   pages: state.messageReducer.pages,
   pageCounts: state.messageReducer.pageCounts,
+  loadingGetMessages: state.messageReducer.loadingGet,
+  errorGetMessages: state.messageReducer.errorGet,
+  errorAddMessage: state.messageReducer.errorAdd,
+  errorSetSeenMessage: state.messageReducer.errorSetSeen,
   activeRoomId: state.tabReducer.activeRoomId,
 });
 

@@ -70,7 +70,7 @@ const loginReducer = (state = loginInitialState, action) => {
 };
 
 const formReducer = combineReducers({
-    signUpReducer,
-    loginReducer,
-})
+  signUpReducer,
+  loginReducer,
+});
 export default formReducer;

@@ -30,8 +30,7 @@ export function getMessages(userId, roomIds, page = 1) {
         return { data };
       })
       .catch((error) => {
-        console.log(error);
-        dispatch(getMessagesFailure(error));
+        dispatch(getMessagesFailure(error.toString()));
       });
   };
 }
@@ -42,7 +41,7 @@ export function addMessage(message) {
     try {
       return dispatch(addMessageSuccess(message));
     } catch (error) {
-      return dispatch(addMessageFailure(error));
+      return dispatch(addMessageFailure(error.toString()));
     }
   };
 }
@@ -72,8 +71,7 @@ export function setMessageSeen(
         }
       })
       .catch((error) => {
-        console.log(error);
-        return dispatch(setMessageSeenFailure(error));
+        return dispatch(setMessageSeenFailure(error.toString()));
       });
   };
 }

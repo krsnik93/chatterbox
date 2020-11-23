@@ -30,7 +30,7 @@ export function getRooms(userId, page = 1) {
         return { data };
       })
       .catch((error) => {
-        dispatch(getRoomsFailure(error));
+        dispatch(getRoomsFailure(error.toString()));
       });
   };
 }
