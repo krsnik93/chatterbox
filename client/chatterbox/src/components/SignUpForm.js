@@ -12,7 +12,7 @@ import { setServerErrors } from "../utils";
 import styles from "./SignUpForm.module.css";
 
 function SignUpForm(props) {
-  const { signUpUser, errorsSignUp: errorsServer } = props;
+  const { signUpUser, errors: errorsServer } = props;
   const { register, handleSubmit, errors, formState, setError } = useForm({
     mode: "onBlur",
     reValidateMode: "onChange",
@@ -154,7 +154,7 @@ function SignUpForm(props) {
 }
 
 const mapStateToProps = (state) => ({
-  errorsSignUp: state.formReducer.errorsSignUp,
+  errors: state.formReducer.signUpReducer.errors,
 });
 
 export default connect(mapStateToProps, { signUpUser })(SignUpForm);

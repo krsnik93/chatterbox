@@ -1,3 +1,5 @@
+import { combineReducers } from "redux";
+
 import {
   FORM_SIGN_UP_BEGIN,
   FORM_SIGN_UP_SUCCESS,
@@ -7,53 +9,68 @@ import {
   FORM_LOGIN_FAILURE,
 } from "../actions/form";
 
-const initialState = {
-  loadingSignUp: false,
-  errorsSignUp: {},
-  loadingLogin: false,
-  errorsLogin: {},
+const signUpInitialState = {
+  loading: false,
+  errors: {},
 };
 
-const formReducer = (state = initialState, action) => {
+const loginInitialState = {
+  loading: false,
+  errors: {},
+};
+
+const signUpReducer = (state = signUpInitialState, action) => {
   switch (action.type) {
     case FORM_SIGN_UP_BEGIN:
       return {
         ...state,
-        loadingSignUp: true,
-        errorsSignUp: {},
+        loading: true,
+        errors: {},
       };
     case FORM_SIGN_UP_SUCCESS:
       return {
         ...state,
-        loadingSignUp: false,
-        errorsSignUp: {},
+        loading: false,
+        errors: {},
       };
     case FORM_SIGN_UP_FAILURE:
       return {
         ...state,
-        loadingSignUp: false,
-        errorsSignUp: action.payload.errors,
-      };
-    case FORM_LOGIN_BEGIN:
-      return {
-        ...state,
-        loadingLogin: true,
-        errorsLogin: {},
-      };
-    case FORM_LOGIN_SUCCESS:
-      return {
-        ...state,
-        loadingLogin: false,
-        errorsLogin: {},
-      };
-    case FORM_LOGIN_FAILURE:
-      return {
-        ...state,
-        loadingLogin: false,
-        errorsLogin: action.payload.errors,
+        loading: false,
+        errors: action.payload.errors,
       };
     default:
       return state;
   }
 };
+
+const loginReducer = (state = loginInitialState, action) => {
+  switch (action.type) {
+    case FORM_LOGIN_BEGIN:
+      return {
+        ...state,
+        loading: true,
+        errors: {},
+      };
+    case FORM_LOGIN_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        errors: {},
+      };
+    case FORM_LOGIN_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        errors: action.payload.errors,
+      };
+    default:
+      return state;
+  }
+};
+
+const formReducer = combineReducers({
+    signUpReducer,
+    loginReducer,
+})
 export default formReducer;

@@ -142,7 +142,7 @@ function Sidebar(props) {
 const mapStateToProps = (state) => ({
   user: state.userReducer.user,
   rooms: state.roomReducer.rooms,
-  loading: state.roomReducer.loading,
+  loading: state.roomReducer.loadingGet,
   page: state.roomReducer.page,
   pageCount: state.roomReducer.pageCount,
   messages: state.messageReducer.messages,

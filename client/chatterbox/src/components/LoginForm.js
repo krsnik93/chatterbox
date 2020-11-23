@@ -13,7 +13,7 @@ import { setServerErrors } from "../utils";
 import styles from "./LoginForm.module.css";
 
 function LoginForm(props) {
-  const { loginUser, errorsLogin: errorsServer } = props;
+  const { loginUser, errors: errorsServer } = props;
   const { register, handleSubmit, errors, formState, setError } = useForm({
     mode: "onBlur",
     reValidateMode: "onChange",
@@ -126,7 +126,7 @@ function LoginForm(props) {
 }
 
 const mapStateToProps = (state) => ({
-  errorsLogin: state.formReducer.errorsLogin,
+  errors: state.formReducer.loginReducer.errors,
 });
 
 export default connect(mapStateToProps, { loginUser })(LoginForm);

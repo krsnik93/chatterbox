@@ -14,8 +14,12 @@ const initialState = {
   messages: {},
   pages: {},
   pageCounts: {},
-  loading: false,
-  error: null,
+  loadingGet: false,
+  errorGet: null,
+  loadingAdd: false,
+  errorAdd: null,
+  loadingSetSeen: false,
+  errorSetSeen: null,
 };
 
 const messageReducer = (state = initialState, action) => {
@@ -23,8 +27,8 @@ const messageReducer = (state = initialState, action) => {
     case GET_MESSAGES_BEGIN:
       return {
         ...state,
-        loading: true,
-        error: null,
+        loadingGet: true,
+        errorGet: null,
       };
     case GET_MESSAGES_SUCCESS:
       return {
@@ -50,20 +54,20 @@ const messageReducer = (state = initialState, action) => {
           ...state.pageCounts,
           ...action.payload.page_counts,
         },
-        loading: false,
-        error: null,
+        loadingGet: false,
+        errorGet: null,
       };
     case GET_MESSAGES_FAILURE:
       return {
         ...state,
-        loading: false,
-        error: action.payload.error,
+        loadingGet: false,
+        errorGet: action.payload.error,
       };
     case ADD_MESSAGE_BEGIN:
       return {
         ...state,
-        //loading: true,
-        error: null,
+        loadingAdd: true,
+        errorAdd: null,
       };
     case ADD_MESSAGE_SUCCESS:
       return {
@@ -74,20 +78,20 @@ const messageReducer = (state = initialState, action) => {
             action.payload.message.room_id
           ].concat(action.payload.message),
         },
-        //loading: false,
-        error: null,
+        loadingAdd: false,
+        errorAdd: null,
       };
     case ADD_MESSAGE_FAILURE:
       return {
         ...state,
-        //loading: false,
-        error: action.payload.error,
+        loadingAdd: false,
+        errorAdd: action.payload.error,
       };
     case SET_MESSAGE_SEEN_BEGIN:
       return {
         ...state,
-        //loading: true,
-        error: null,
+        loadingSetSeen: true,
+        errorSetSeen: null,
       };
     case SET_MESSAGE_SEEN_SUCCESS:
       const seenMessages = action.payload.messages;
@@ -112,15 +116,15 @@ const messageReducer = (state = initialState, action) => {
       return {
         ...state,
         messages: newMessages,
-        //loading: false,
-        error: null,
+        loadingSetSeen: false,
+        errorSetSeen: null,
       };
 
     case SET_MESSAGE_SEEN_FAILURE:
       return {
         ...state,
-        //loading: false,
-        error: action.payload.error,
+        loadingSetSeen: false,
+        errorSetSeen: action.payload.error,
       };
     default:
       return state;

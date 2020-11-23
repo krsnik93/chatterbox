@@ -16,7 +16,7 @@ function Header(props) {
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="ml-auto">
           <CreateRoomButton variant="outline-light" socket={socket} />
-          <NavDropdown title={user.username}>
+          <NavDropdown title={user.username} alignRight>
             <NavDropdown.Item href="#action/3.1">Profile</NavDropdown.Item>
             <NavDropdown.Item href="#action/3.2">Settings</NavDropdown.Item>
             <NavDropdown.Divider />
