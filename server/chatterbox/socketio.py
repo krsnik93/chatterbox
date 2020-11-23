@@ -29,7 +29,6 @@ def on_join(data):
     username = data['username']
     room = data['room']
     join_room(room)
-    print(f"User {username} has joined room '{room}'.")
     emit(
         'join',
         {'data': f"User '{username}' has joined room '{room}'."},

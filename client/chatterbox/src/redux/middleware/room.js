@@ -1,3 +1,5 @@
+import queryString from "query-string";
+
 import {
   getRoomsBegin,
   getRoomsFailure,
@@ -12,18 +14,20 @@ import {
   deleteRoomSuccess,
   deleteRoomFailure,
 } from "../actions/room";
-
 import { api } from "../../axios";
 
-export function getRooms(userId) {
+export function getRooms(userId, page = 1) {
   return (dispatch) => {
     dispatch(getRoomsBegin());
+
+    const queryStr = queryString.stringify({ page: page });
+
     return api
-      .get(`/users/${userId}/rooms`)
+      .get(`/users/${userId}/rooms?${queryStr}`)
       .then((response) => {
-        const { rooms } = response.data;
-        dispatch(getRoomsSuccess(rooms));
-        return { rooms };
+        const { data } = response;
+        dispatch(getRoomsSuccess(data));
+        return { data };
       })
       .catch((error) => {
         dispatch(getRoomsFailure(error));

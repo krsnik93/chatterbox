@@ -18,8 +18,6 @@ function Home(props) {
   const { user, tokens, rooms, getRooms, logoutUser, addRoom } = props;
   const { path } = useRouteMatch();
   const socket = useContext(SocketContext);
-  const [fetchedRooms, setFetchedRooms] = useState(false);
-  const [joinedRooms, setJoinedRooms] = useState(false);
   const [createdListeners, setCreatedListeners] = useState(false);
 
   useEffect(() => {
@@ -76,25 +74,7 @@ function Home(props) {
     });
 
     setCreatedListeners(true);
-
   }, [socket, createdListeners, addRoom]);
-
-  useEffect(() => {
-    if (user && !fetchedRooms) {
-      getRooms(user.id).then(() => setFetchedRooms(true));
-    }
-  }, [user, fetchedRooms, getRooms]);
-
-  useEffect(() => {
-    if (socket && user && fetchedRooms && !joinedRooms) {
-      console.log(`Joining ${rooms.length} rooms.`);
-      for (const room of rooms) {
-        socket.emit("join", { username: user.username, room: room.id });
-      }
-      socket.emit("join", { username: user.username, room: user.username });
-      setJoinedRooms(true);
-    }
-  }, [socket, user, rooms, fetchedRooms, joinedRooms]);
 
   if (!user) return <Redirect to="/login" />;
 

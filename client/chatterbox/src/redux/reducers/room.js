@@ -15,6 +15,8 @@ import {
 
 const initialState = {
   rooms: [],
+  page: null,
+  pageCount: null,
   loading: false,
   error: null,
 };
@@ -24,14 +26,14 @@ const roomReducer = (state = initialState, action) => {
     case GET_ROOMS_BEGIN:
       return {
         ...state,
-        rooms: [],
         loading: true,
         error: null,
       };
     case GET_ROOMS_SUCCESS:
       return {
-        ...state,
-        rooms: action.payload.rooms,
+        rooms: state.rooms.concat(action.payload.rooms),
+        page: action.payload.page,
+        pageCount: action.payload.page_count,
         loading: false,
         error: null,
       };
@@ -44,26 +46,26 @@ const roomReducer = (state = initialState, action) => {
     case ADD_ROOM_BEGIN:
       return {
         ...state,
-        loading: true,
+        //loading: true,
         error: null,
       };
     case ADD_ROOM_SUCCESS:
       return {
         ...state,
         rooms: [action.payload.room].concat(state.rooms),
-        loading: false,
+        //loading: false,
         error: null,
       };
     case ADD_ROOM_FAILURE:
       return {
         ...state,
-        loading: false,
+        //loading: false,
         error: action.payload.error,
       };
     case LEAVE_ROOM_BEGIN:
       return {
         ...state,
-        loading: true,
+        //loading: true,
         error: null,
       };
     case LEAVE_ROOM_SUCCESS:
@@ -72,19 +74,19 @@ const roomReducer = (state = initialState, action) => {
         rooms: state.rooms.filter(
           (room) => room.id !== parseInt(action.payload.roomId)
         ),
-        loading: false,
+        //loading: false,
         error: null,
       };
     case LEAVE_ROOM_FAILURE:
       return {
         ...state,
-        loading: false,
+        //loading: false,
         error: action.payload.error,
       };
     case DELETE_ROOM_BEGIN:
       return {
         ...state,
-        loading: true,
+        //loading: true,
         error: null,
       };
     case DELETE_ROOM_SUCCESS:
@@ -93,13 +95,13 @@ const roomReducer = (state = initialState, action) => {
         rooms: state.rooms.filter(
           (room) => room.id !== parseInt(action.payload.roomId)
         ),
-        loading: false,
+        //loading: false,
         error: null,
       };
     case DELETE_ROOM_FAILURE:
       return {
         ...state,
-        loading: false,
+        //loading: false,
         error: action.payload.error,
       };
     default:

@@ -137,9 +137,12 @@ class Users(Resource):
 )
 class Rooms(Resource):
     @jwt_required
-    def get(self, user_id):
+    @use_args({
+        "page": fields.Int(),
+    }, location="query")
+    def get(self, args, user_id):
         from .app import app
-        page = request.args.get('page', 1, type=int)
+        page = args.get('page', 1)
 
         rooms = db.session.query(Room).outerjoin(Message).join(
             Membership).filter(Membership.user_id == user_id).group_by(
@@ -147,9 +150,14 @@ class Rooms(Resource):
                                             Room.created_at).desc()).paginate(
             page, app.config['PAGINATION_PER_PAGE'], False).items
 
+        page_count = db.session.query(
+            func.count(Room.id) / app.config['PAGINATION_PER_PAGE'] + 1
+        ).join(Membership).filter(Membership.user_id == user_id).one()[0]
+
         return make_response(jsonify(
             rooms=RoomSchema(many=True).dump(rooms),
-            page=page
+            page=page,
+            page_count=page_count
         ), 200)
 
     @jwt_required

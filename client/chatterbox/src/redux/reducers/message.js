@@ -29,13 +29,13 @@ const messageReducer = (state = initialState, action) => {
     case GET_MESSAGES_SUCCESS:
       return {
         messages: {
-            ...state.messages,
-            ...Object.fromEntries(
-          Object.entries(action.payload.messages).map(([roomId, msgs]) => [
-            roomId,
-            msgs.concat(state.messages?.[roomId] || []),
-          ])
-        )
+          ...state.messages,
+          ...Object.fromEntries(
+            Object.entries(action.payload.messages).map(([roomId, msgs]) => [
+              roomId,
+              msgs.concat(state.messages?.[roomId] || []),
+            ])
+          ),
         },
         pages: {
           ...state.pages,

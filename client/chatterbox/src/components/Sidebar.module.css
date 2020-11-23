@@ -1,7 +1,7 @@
 .nav {
     display: flex;
     flex-direction: column !important;
-    flex-wrap: nowrap;
+    flex-wrap: nowrap !important;
     border-right: 1px solid #cccccc;
     border-bottom: 1px solid #cccccc;
     height: calc(100vh - 56px);
@@ -40,4 +40,9 @@
 .badge {
     padding: 5px !important;
     width: 4ch;
+}
+.spinnerContainer {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
 }
