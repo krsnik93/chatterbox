@@ -4,6 +4,7 @@ import { connect } from "react-redux";
 import Tab from "react-bootstrap/Tab";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
+import { toast } from "react-toastify";
 
 import Room from "./Room";
 import Header from "../components/Header";
@@ -66,7 +67,11 @@ function Home(props) {
     socket.on("room event", (response) => {
       const { status_code, message, room } = response;
       if (status_code === 200) {
-        addRoom(room);
+        addRoom(room).then((roomOrNull) => {
+            if (roomOrNull) {
+                toast.success(`Successfully added room '${roomOrNull.name}'.`)
+            }
+        });
       } else {
         console.error(message);
         console.error(response);
@@ -93,7 +98,7 @@ function Home(props) {
               </Route>
               <Route path={`${path}/rooms`}>
                 <Route path={`${path}/rooms/:roomId`}>
-                  <Room socket={socket} />
+                  <Room />
                 </Route>
               </Route>
               <Route path={`${path}/users`}>Users</Route>

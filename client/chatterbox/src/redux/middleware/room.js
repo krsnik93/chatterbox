@@ -40,8 +40,10 @@ export function addRoom(room) {
     dispatch(addRoomBegin());
     try {
       dispatch(addRoomSuccess(room));
+      return Promise.resolve(room);
     } catch (error) {
-      dispatch(addRoomFailure(error));
+       dispatch(addRoomFailure(error));
+       return Promise.resolve(false);
     }
   };
 }
@@ -56,8 +58,10 @@ export function leaveRoom(userId, roomId) {
         if (status === 200) {
           const { room_id } = response.data;
           dispatch(leaveRoomSuccess(room_id));
+          return Promise.resolve(true);
         } else {
           dispatch(leaveRoomFailure(response));
+          return Promise.resolve(false);
         }
       })
       .catch((error) => {
@@ -76,8 +80,10 @@ export function deleteRoom(userId, roomId) {
         if (status === 200) {
           const { room_id } = response.data;
           dispatch(deleteRoomSuccess(room_id));
+          return Promise.resolve(true);
         } else {
           dispatch(deleteRoomFailure(response));
+          return Promise.resolve(false);
         }
       })
       .catch((error) => {

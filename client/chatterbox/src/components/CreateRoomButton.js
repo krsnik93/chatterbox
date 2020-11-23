@@ -54,6 +54,7 @@ const CreateRoomButton = (props) => {
   };
 
   const onCreate = (event) => {
+    event.preventDefault();
     socket.emit("room event", {
       roomName,
       userId: user.id,
@@ -74,7 +75,7 @@ const CreateRoomButton = (props) => {
           <Modal.Title>Create a Room</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form>
+          <Form noValidate onSubmit={onCreate}>
             <Form.Control
               type="text"
               name="roomName"
@@ -97,7 +98,7 @@ const CreateRoomButton = (props) => {
           <Button variant="secondary" onClick={onHide}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={onCreate}>
+          <Button variant="primary" type="submit" onClick={onCreate}>
             Create
           </Button>
         </Modal.Footer>

@@ -136,11 +136,19 @@ function Room(props) {
   };
 
   const onConfirmLeave = () => {
-    leaveRoom(user.id, room.id);
+    leaveRoom(user.id, room.id).then((status) => {
+        if (status){
+            toast.success('Successfully left room.');
+        }
+    });
   };
 
   const onConfirmDelete = () => {
-    deleteRoom(user.id, room.id);
+    deleteRoom(user.id, room.id).then((status) => {
+        if (status){
+            toast.success('Successfully deleted room.');
+        }
+    });
   };
 
   const scrollToBottom = useCallback(() => {
