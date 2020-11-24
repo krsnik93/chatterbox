@@ -5,7 +5,7 @@ import Form from "react-bootstrap/Form";
 import AsyncSelect from "react-select/async";
 import { connect } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlusSquare } from "@fortawesome/free-regular-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import { api } from "../axios";
 
@@ -66,7 +66,7 @@ const CreateRoomButton = (props) => {
   return (
     <>
       <Button variant={variant} onClick={onClick}>
-        <FontAwesomeIcon icon={faPlusSquare} />
+        <FontAwesomeIcon icon={faPlus} />
         {" New Room"}
       </Button>
 
