@@ -1,17 +1,16 @@
-from collections import defaultdict
-from flask import Blueprint, request, jsonify, make_response
-from flask_restful import Resource, Api
+from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                jwt_required, get_jwt_identity,
-                                jwt_refresh_token_required)
-from sqlalchemy.sql.expression import func, case
+                                get_jwt_identity, jwt_refresh_token_required,
+                                jwt_required)
+from flask_restful import Api, Resource
+from sqlalchemy.sql.expression import case, func
 from webargs import fields
 from webargs.flaskparser import use_args
 
-from .schemas import UserSchema, RoomSchema, MessageSchema, MessageSeenSchema
-from .models import User, Room, Membership, Message, MessageSeen
-from .extensions import bcrypt, jwt
 from .database import db, session_scope
+from .extensions import bcrypt, jwt
+from .models import Membership, Message, MessageSeen, Room, User
+from .schemas import MessageSchema, MessageSeenSchema, RoomSchema, UserSchema
 
 api_blueprint = Blueprint('api', __name__)
 api = Api(api_blueprint)

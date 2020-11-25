@@ -1,10 +1,11 @@
-from flask_socketio import SocketIO, emit, join_room, leave_room
 from engineio.payload import Payload
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from sqlalchemy import and_, case, func
+from sqlalchemy.sql.expression import true
 
-from .database import session_scope
-from .models import User, Room, Message, Membership
-from .schemas import RoomSchema, MessageSchema
-
+from .database import db, session_scope
+from .models import Membership, Message, MessageSeen, Room, User
+from .schemas import MessageSchema, RoomSchema
 
 Payload.max_decode_packets = 500
 socketio = SocketIO(
@@ -116,3 +117,35 @@ def message_event(data):
 
     emit('message event', response, room=room)
 
+
+@socketio.on('unseen messages')
+def unseen_messages(data):
+    user_id = data['userId']
+    room_ids = data['roomIds']
+    operation = data['operation']
+    if not Membership.query.filter(
+            Membership.user_id == user_id,
+            Membership.room_id.in_(room_ids)
+    ).count() == len(room_ids):
+        socketio.emit("unseen messages", {
+            'error': (
+                'User must be a member of the room to get unseen messages.'
+            )
+        })
+        return
+
+    unseen_messages_subquery = db.session.query(Message.id).outerjoin(
+        MessageSeen).group_by(Message.id).having(func.sum(case(
+            [(and_(MessageSeen.user_id == user_id, MessageSeen.status == true()
+                   ), 1)], else_=0)) == 0).subquery()
+    rooms_with_counts = db.session.query(
+        Room.id, func.count(Message.id.in_(unseen_messages_subquery))
+    ).filter(Room.id.in_(room_ids)).outerjoin(Message).join(
+        unseen_messages_subquery,
+        Message.id == unseen_messages_subquery.c.id
+    ).group_by(Room.id)
+    unseen_counts_by_room = {row[0]: row[1] for row in rooms_with_counts}
+    emit("unseen messages", {
+        'unseen_counts_by_room': unseen_counts_by_room,
+        'operation': operation
+    })

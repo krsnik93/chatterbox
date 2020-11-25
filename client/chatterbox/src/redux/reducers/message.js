@@ -74,9 +74,12 @@ const messageReducer = (state = initialState, action) => {
         ...state,
         messages: {
           ...state.messages,
-          [action.payload.message.room_id]: state.messages[
-            action.payload.message.room_id
-          ].concat(action.payload.message),
+          [action.payload.message.room_id]:
+            action.payload.message.room_id in state.messages
+              ? state.messages[action.payload.message.room_id].concat(
+                  action.payload.message
+                )
+              : [action.payload.message],
         },
         loadingAdd: false,
         errorAdd: null,

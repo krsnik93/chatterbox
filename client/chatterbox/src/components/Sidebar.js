@@ -8,6 +8,7 @@ import classNames from "classnames";
 import { toast } from "react-toastify";
 
 import { SocketContext } from "../contexts";
+import { getCountsSuccess, getCountsFailure } from "../redux/actions/unseen";
 import { getRooms } from "../redux/middleware/room";
 import styles from "./Sidebar.module.css";
 
@@ -21,22 +22,31 @@ function Sidebar(props) {
     page,
     pageCount,
     messages,
+    counts,
     activeRoomId,
     getRooms,
+    getCountsSuccess,
+    getCountsFailure,
   } = props;
-  const [unseenMessageCounts, setUnseenMessageCounts] = useState({});
+
   const [hasMoreRooms, setHasMoreRooms] = useState(true);
   const [isAtBottom, setIsAtBottom] = useState(false);
   const [joinedRooms, setJoinedRooms] = useState({});
+  const [
+    createdUnseenMessagesListener,
+    setCreatedUnseenMessagesListener,
+  ] = useState(false);
   const bottomRef = useRef();
   const roomsRef = useRef();
 
   useEffect(() => {
     if (!error) return;
+    console.log("error");
     toast.error(error);
   }, [error]);
 
   useEffect(() => {
+    if (!pageCount) return;
     setHasMoreRooms(!page || !pageCount || page < pageCount);
   }, [page, pageCount]);
 
@@ -74,42 +84,57 @@ function Sidebar(props) {
   ]);
 
   useEffect(() => {
-    if (socket && user && page) {
-      const newJoinedRooms = {};
-      for (const room of rooms) {
-        if (!(room.id in joinedRooms)) {
-          socket.emit("join", { username: user.username, room: room.id });
-          newJoinedRooms[room.id] = true;
-        }
+    if (!socket || !user || !rooms.length) return;
+    const newJoinedRooms = {};
+    for (const room of rooms) {
+      if (!(room.id in joinedRooms)) {
+        socket.emit("join", { username: user.username, room: room.id });
+        newJoinedRooms[room.id] = true;
       }
-      if (!(user.username in joinedRooms)) {
-        socket.emit("join", { username: user.username, room: user.username });
-        newJoinedRooms[user.username] = true;
-      }
-      setJoinedRooms((joinedRooms) => ({ ...joinedRooms, ...newJoinedRooms }));
     }
-  }, [socket, user, rooms]);
+    if (!(user.username in joinedRooms)) {
+      socket.emit("join", { username: user.username, room: user.username });
+      newJoinedRooms[user.username] = true;
+    }
+    setJoinedRooms((joinedRooms) => ({ ...joinedRooms, ...newJoinedRooms }));
+  }, [socket, user, rooms, setJoinedRooms]);
 
   useEffect(() => {
-    if (messages) {
-      //      const counts = Object.fromEntries(
-      //        Object.entries(messages).map(([roomId, msgs]) => [
-      //          roomId,
-      //          msgs.filter(
-      //            (m) =>
-      //              !m.seens ||
-      //              !m.seens.find((s) => s.user_id === user.id) ||
-      //              !m.seens.find((s) => s.user_id === user.id).status
-      //          ).length,
-      //        ])
-      //      );
-      //      setUnseenMessageCounts(counts);
+    if (!socket || createdUnseenMessagesListener) {
+      return;
     }
-  }, [user.id, messages]);
 
-  const getUnseenMessageCountForRoom = (roomId) => {
-    return roomId in unseenMessageCounts ? unseenMessageCounts[roomId] : 0;
-  };
+    socket.on("unseen messages", (response) => {
+      const { error } = response;
+      if (error) getCountsFailure(error);
+      else getCountsSuccess(response);
+    });
+
+    setCreatedUnseenMessagesListener(true);
+  }, [
+    socket,
+    createdUnseenMessagesListener,
+    getCountsFailure,
+    getCountsSuccess,
+  ]);
+
+  useEffect(() => {
+    if (!socket || !user || !rooms.length) return;
+    socket.emit("unseen messages", {
+      userId: user.id,
+      roomIds: rooms.map((room) => room.id),
+      operation: "set",
+    });
+  }, [rooms, messages, socket, user]);
+
+  useEffect(() => {
+    console.log("messages changed");
+  }, [messages]);
+
+  useEffect(() => {
+    console.log("counts changed");
+    console.log(counts);
+  }, [counts]);
 
   return (
     <Nav
@@ -120,8 +145,6 @@ function Sidebar(props) {
       ref={roomsRef}
     >
       {rooms.map((room, index) => {
-        const unseenMessageCount = getUnseenMessageCountForRoom(room.id);
-
         return (
           <Nav.Item key={index} className={styles.navItem}>
             <LinkContainer
@@ -133,9 +156,9 @@ function Sidebar(props) {
             >
               <Nav.Link eventKey={room.id} className={styles.navLink}>
                 {room.name}{" "}
-                {!!unseenMessageCount && (
+                {!!counts?.[room.id] && (
                   <Badge pill className={styles.badge} variant="secondary">
-                    {unseenMessageCount}
+                    {counts[room.id]}
                   </Badge>
                 )}
               </Nav.Link>
@@ -162,8 +185,13 @@ const mapStateToProps = (state) => ({
   error: state.roomReducer.errorGet,
   page: state.roomReducer.page,
   pageCount: state.roomReducer.pageCount,
+  counts: state.unseenReducer.counts,
   messages: state.messageReducer.messages,
   activeRoomId: state.tabReducer.activeRoomId,
 });
 
-export default connect(mapStateToProps, { getRooms })(Sidebar);
+export default connect(mapStateToProps, {
+  getRooms,
+  getCountsFailure,
+  getCountsSuccess,
+})(Sidebar);

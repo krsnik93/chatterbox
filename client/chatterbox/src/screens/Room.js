@@ -14,11 +14,7 @@ import Spinner from "react-bootstrap/Spinner";
 import { toast } from "react-toastify";
 
 import { leaveRoom, deleteRoom } from "../redux/middleware/room";
-import {
-  getMessages,
-  addMessageAndSetSeen,
-  setMessageSeen,
-} from "../redux/middleware/message";
+import { getMessages, setMessageSeen } from "../redux/middleware/message";
 import { setActiveRoomId } from "../redux/actions/tab";
 import RoomHeader from "../components/RoomHeader";
 import MessageItem from "../components/MessageItem";
@@ -41,9 +37,7 @@ function Room(props) {
     deleteRoom,
     getMessages,
     setActiveRoomId,
-    addMessageAndSetSeen,
     setMessageSeen,
-    activeRoomId,
   } = props;
 
   const socket = useContext(SocketContext);
@@ -53,7 +47,6 @@ function Room(props) {
   const [messages, setMessages] = useState([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isAtTop, setIsAtTop] = useState(false);
-  const [createdMessageListener, setCreatedMessageListener] = useState(false);
   const bottomRef = useRef();
   const messagesRef = useRef();
 
@@ -82,33 +75,10 @@ function Room(props) {
 
   useEffect(() => {
     if (room) {
+      console.log("setting messages seen");
       setMessageSeen(user.id, room.id, [], true, true);
     }
   }, [user.id, room, setMessageSeen]);
-
-  useEffect(() => {
-    if (!activeRoomId || createdMessageListener) {
-      return;
-    }
-
-    socket.on("message event", (response) => {
-      const { status_code, message } = response;
-      const seenStatus = activeRoomId === message.room_id;
-      if (status_code === 200) {
-        addMessageAndSetSeen(user.id, message.room_id, message, seenStatus);
-      } else {
-        console.error(message);
-      }
-    });
-
-    setCreatedMessageListener(true);
-  }, [
-    user,
-    socket,
-    createdMessageListener,
-    activeRoomId,
-    addMessageAndSetSeen,
-  ]);
 
   useEffect(() => {
     if (!room) {
@@ -137,17 +107,17 @@ function Room(props) {
 
   const onConfirmLeave = () => {
     leaveRoom(user.id, room.id).then((status) => {
-        if (status){
-            toast.success('Successfully left room.');
-        }
+      if (status) {
+        toast.success("Successfully left room.");
+      }
     });
   };
 
   const onConfirmDelete = () => {
     deleteRoom(user.id, room.id).then((status) => {
-        if (status){
-            toast.success('Successfully deleted room.');
-        }
+      if (status) {
+        toast.success("Successfully deleted room.");
+      }
     });
   };
 
@@ -204,16 +174,19 @@ function Room(props) {
 
   useEffect(() => {
     if (!errorGetMessages) return;
+    console.log("errorGetMessages");
     toast.error(errorGetMessages);
   }, [errorGetMessages]);
 
   useEffect(() => {
     if (!errorAddMessage) return;
+    console.log("errorAddMessage");
     toast.error(errorAddMessage);
   }, [errorAddMessage]);
 
   useEffect(() => {
     if (!errorSetSeenMessage) return;
+    console.log("errorSetSeenMessage");
     toast.error(errorSetSeenMessage);
   }, [errorSetSeenMessage]);
 
@@ -289,6 +262,5 @@ export default connect(mapStateToProps, {
   setActiveRoomId,
   leaveRoom,
   deleteRoom,
-  addMessageAndSetSeen,
   setMessageSeen,
 })(Room);

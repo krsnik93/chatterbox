@@ -42,8 +42,8 @@ export function addRoom(room) {
       dispatch(addRoomSuccess(room));
       return Promise.resolve(room);
     } catch (error) {
-       dispatch(addRoomFailure(error));
-       return Promise.resolve(false);
+      dispatch(addRoomFailure(error));
+      return Promise.resolve(false);
     }
   };
 }

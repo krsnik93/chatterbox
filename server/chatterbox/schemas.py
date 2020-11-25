@@ -1,5 +1,5 @@
-from .models import User, Room, Membership, Message, MessageSeen
 from .extensions import marshmallow
+from .models import Membership, Message, MessageSeen, Room, User
 
 
 class UserSchema(marshmallow.SQLAlchemyAutoSchema):

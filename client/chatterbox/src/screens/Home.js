@@ -10,13 +10,21 @@ import Room from "./Room";
 import Header from "../components/Header";
 import { logoutUser } from "../redux/middleware/user";
 import { getRooms, addRoom } from "../redux/middleware/room";
+import { addMessageAndSetSeen } from "../redux/middleware/message";
 import Sidebar from "../components/Sidebar";
 import Welcome from "../screens/Welcome";
 import { SocketContext } from "../contexts";
 import styles from "./Home.module.css";
 
 function Home(props) {
-  const { user, tokens, rooms, getRooms, logoutUser, addRoom } = props;
+  const {
+    user,
+    rooms,
+    tokens,
+    logoutUser,
+    addRoom,
+    addMessageAndSetSeen,
+  } = props;
   const { path } = useRouteMatch();
   const socket = useContext(SocketContext);
   const [createdListeners, setCreatedListeners] = useState(false);
@@ -40,7 +48,7 @@ function Home(props) {
   }, [user, tokens]);
 
   useEffect(() => {
-    if (createdListeners) {
+    if (!user || createdListeners) {
       return;
     }
 
@@ -68,18 +76,38 @@ function Home(props) {
       const { status_code, message, room } = response;
       if (status_code === 200) {
         addRoom(room).then((roomOrNull) => {
-            if (roomOrNull) {
-                toast.success(`Successfully added room '${roomOrNull.name}'.`)
-            }
+          if (roomOrNull) {
+            toast.success(`Successfully added room '${roomOrNull.name}'.`);
+          }
         });
       } else {
         console.error(message);
-        console.error(response);
+      }
+    });
+
+    socket.on("message event", (response) => {
+      const match = window.location.pathname.match(/\/rooms\/(\d+)/);
+      const activeRoomId = match && match[1] ? parseInt(match[1]) : null;
+      const { status_code, message } = response;
+      const seen = activeRoomId === message.room_id;
+      if (status_code === 200) {
+        if (seen) {
+          addMessageAndSetSeen(user.id, message.room_id, message, seen);
+        } else {
+          console.log("emitting unseen as not in room of message");
+          socket.emit("unseen messages", {
+            userId: user.id,
+            roomIds: [message.room_id],
+            operation: "update",
+          });
+        }
+      } else {
+        console.error(message);
       }
     });
 
     setCreatedListeners(true);
-  }, [socket, createdListeners, addRoom]);
+  }, [user, socket, rooms, createdListeners, addRoom, addMessageAndSetSeen]);
 
   if (!user) return <Redirect to="/login" />;
 
@@ -121,4 +149,5 @@ export default connect(mapStateToProps, {
   getRooms,
   logoutUser,
   addRoom,
+  addMessageAndSetSeen,
 })(Home);
