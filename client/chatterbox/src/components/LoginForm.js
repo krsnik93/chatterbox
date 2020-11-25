@@ -115,7 +115,7 @@ function LoginForm(props) {
         </Row>
         <Row className={styles.row}>
           <Col className={styles.buttonColumn}>
-            <Button type="submit" className={styles.button}>
+            <Button type="submit" variant="dark" className={styles.button}>
               Login
             </Button>
           </Col>
