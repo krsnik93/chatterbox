@@ -41,7 +41,6 @@ function Sidebar(props) {
 
   useEffect(() => {
     if (!error) return;
-    console.log("error");
     toast.error(error);
   }, [error]);
 
@@ -126,15 +125,6 @@ function Sidebar(props) {
       operation: "set",
     });
   }, [rooms, messages, socket, user]);
-
-  useEffect(() => {
-    console.log("messages changed");
-  }, [messages]);
-
-  useEffect(() => {
-    console.log("counts changed");
-    console.log(counts);
-  }, [counts]);
 
   return (
     <Nav
