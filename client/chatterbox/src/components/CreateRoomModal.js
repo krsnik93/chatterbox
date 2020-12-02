@@ -9,20 +9,10 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 import { api } from "../axios";
 
-const CreateRoomButton = (props) => {
-  const { socket, user, variant } = props;
-  const [showModal, setShowModal] = useState(false);
+const CreateRoomModal = (props) => {
+  const { socket, user, showModal, setShowModal } = props;
   const [roomName, setRoomName] = useState("");
   const [users, setUsers] = useState([]);
-
-  const onClick = () => {
-    setShowModal(true);
-  };
-
-  const onHide = () => {
-    setShowModal(false);
-    setRoomName("");
-  };
 
   const processUsers = (users) => {
     const processedUsers = users.map((user, index) => ({
@@ -30,6 +20,11 @@ const CreateRoomButton = (props) => {
       label: user.username,
     }));
     return processedUsers;
+  };
+
+  const onHide = () => {
+    setShowModal(false);
+    setRoomName("");
   };
 
   const onChangeRoomName = (event) => {
@@ -64,46 +59,39 @@ const CreateRoomButton = (props) => {
   };
 
   return (
-    <>
-      <Button variant={variant} onClick={onClick}>
-        <FontAwesomeIcon icon={faPlus} />
-        {" New Room"}
-      </Button>
-
-      <Modal show={showModal} onHide={onHide}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create a Room</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form noValidate onSubmit={onCreate}>
-            <Form.Control
-              type="text"
-              name="roomName"
-              placeholder="Enter Room Name..."
-              value={roomName}
-              onChange={onChangeRoomName}
-            />
-          </Form>
-          <h4>Add other users to the room</h4>
-          <AsyncSelect
-            placeholder="Find users..."
-            isSearchable
-            isMulti
-            defaultOptions={[]}
-            loadOptions={onChangeUserSearch}
-            onChange={onChange}
+    <Modal show={showModal} onHide={onHide}>
+      <Modal.Header closeButton>
+        <Modal.Title>Create a Room</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Form noValidate onSubmit={onCreate}>
+          <Form.Control
+            type="text"
+            name="roomName"
+            placeholder="Enter Room Name..."
+            value={roomName}
+            onChange={onChangeRoomName}
           />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
-            Cancel
-          </Button>
-          <Button variant="primary" type="submit" onClick={onCreate}>
-            Create
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
+        </Form>
+        <h4>Add other users to the room</h4>
+        <AsyncSelect
+          placeholder="Find users..."
+          isSearchable
+          isMulti
+          defaultOptions={[]}
+          loadOptions={onChangeUserSearch}
+          onChange={onChange}
+        />
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onHide}>
+          Cancel
+        </Button>
+        <Button variant="primary" type="submit" onClick={onCreate}>
+          Create
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 };
 
@@ -111,4 +99,4 @@ const mapStateToProps = (state) => ({
   user: state.userReducer.user,
 });
 
-export default connect(mapStateToProps, null)(CreateRoomButton);
+export default connect(mapStateToProps, null)(CreateRoomModal);
