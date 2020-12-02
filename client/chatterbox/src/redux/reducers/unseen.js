@@ -1,7 +1,7 @@
 import {
-  GET_COUNTS_BEGIN,
-  GET_COUNTS_FAILURE,
-  GET_COUNTS_SUCCESS,
+  SET_COUNTS_BEGIN,
+  SET_COUNTS_FAILURE,
+  SET_COUNTS_SUCCESS,
 } from "../actions/unseen";
 
 const initialState = {
@@ -12,25 +12,19 @@ const initialState = {
 
 const unseenReducer = (state = initialState, action) => {
   switch (action.type) {
-    case GET_COUNTS_BEGIN:
+    case SET_COUNTS_BEGIN:
       return {
         ...state,
         loading: true,
         error: null,
       };
-    case GET_COUNTS_SUCCESS:
+    case SET_COUNTS_SUCCESS:
       return {
-        counts:
-          action.payload.operation === "update"
-            ? {
-                ...state.counts,
-                ...action.payload.unseen_counts_by_room,
-              }
-            : action.payload.unseen_counts_by_room,
+        counts: action.payload.unseen_messages,
         loading: false,
         error: null,
       };
-    case GET_COUNTS_FAILURE:
+    case SET_COUNTS_FAILURE:
       return {
         ...state,
         loading: false,

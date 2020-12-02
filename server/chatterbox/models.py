@@ -39,6 +39,8 @@ class Membership(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+    user = db.relationship("User")
+    room = db.relationship("Room")
 
 
 class Message(db.Model):

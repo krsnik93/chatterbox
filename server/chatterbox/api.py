@@ -137,17 +137,28 @@ class Users(Resource):
 class Rooms(Resource):
     @jwt_required
     @use_args({
+        "room_ids": fields.List(fields.Int()),
         "page": fields.Int(),
     }, location="query")
     def get(self, args, user_id):
         from .app import app
         page = args.get('page', 1)
+        room_ids = args.get('room_ids', [])
 
-        rooms = db.session.query(Room).outerjoin(Message).join(
+        query = db.session.query(Room)
+
+        if len(room_ids) > 0:
+            query = query.filter(Room.id.in_(room_ids))
+
+        query = query.outerjoin(Message).join(
             Membership).filter(Membership.user_id == user_id).group_by(
             Room.id).order_by(func.coalesce(func.max(Message.sent_at),
-                                            Room.created_at).desc()).paginate(
-            page, app.config['PAGINATION_PER_PAGE'], False).items
+                                            Room.created_at).desc())
+        rooms = query.paginate(
+            page,
+            app.config['PAGINATION_PER_PAGE'],
+            False
+        ).items
 
         page_count = db.session.query(
             func.count(Room.id) / app.config['PAGINATION_PER_PAGE'] + 1
@@ -212,8 +223,18 @@ class Rooms(Resource):
         return make_response(jsonify(room_id=room_id), 200)
 
 
-@api.resource('/users/<user_id>/rooms/<room_id>/memberships')
+@api.resource(
+    '/users/<user_id>/rooms/<room_id>/memberships',
+    '/users/<user_id>/memberships'
+)
 class Memberships(Resource):
+    @jwt_required
+    def get(self, user_id):
+        memberships = db.session.query(Membership.room_id).filter(
+            Membership.user_id == user_id).order_by(Membership.room_id).all()
+        memberships = [m for (m,) in memberships]
+        return make_response(jsonify(memberships=memberships), 200)
+
     @jwt_required
     @use_args({
         "usernames": fields.List(fields.String()),

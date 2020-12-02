@@ -16,11 +16,14 @@ import {
 } from "../actions/room";
 import { api } from "../../axios";
 
-export function getRooms(userId, page = 1) {
+export function getRooms({ userId, roomIds = [], page = 1 } = {}) {
   return (dispatch) => {
     dispatch(getRoomsBegin());
 
-    const queryStr = queryString.stringify({ page: page });
+    const queryStr = queryString.stringify(
+      { room_ids: roomIds, page: page },
+      { arrayFormat: "none" }
+    );
 
     return api
       .get(`/users/${userId}/rooms?${queryStr}`)

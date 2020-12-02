@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { Route, Switch, Redirect, useRouteMatch } from "react-router-dom";
 import { connect } from "react-redux";
 import Tab from "react-bootstrap/Tab";
@@ -24,6 +24,7 @@ function Home(props) {
     logoutUser,
     addRoom,
     addMessageAndSetSeen,
+    getRooms,
   } = props;
   const { path } = useRouteMatch();
   const socket = useContext(SocketContext);
@@ -72,7 +73,13 @@ function Home(props) {
       }
     });
 
+    setCreatedListeners(true);
+  }, [user, socket, createdListeners, addRoom, addMessageAndSetSeen]);
+
+  useEffect(() => {
+    if (!socket) return;
     socket.on("room event", (response) => {
+      console.log(response);
       const { status_code, message, room } = response;
       if (status_code === 200) {
         addRoom(room).then((roomOrNull) => {
@@ -82,32 +89,30 @@ function Home(props) {
         });
       } else {
         console.error(message);
+        toast.error(message);
       }
     });
+  }, [socket, addRoom]);
 
+  useEffect(() => {
+    if (!user || !socket) return;
+    socket.off("message event");
     socket.on("message event", (response) => {
       const match = window.location.pathname.match(/\/rooms\/(\d+)/);
       const activeRoomId = match && match[1] ? parseInt(match[1]) : null;
       const { status_code, message } = response;
       const seen = activeRoomId === message.room_id;
       if (status_code === 200) {
-        if (seen) {
-          addMessageAndSetSeen(user.id, message.room_id, message, seen);
-        } else {
-          console.log("emitting unseen as not in room of message");
-          socket.emit("unseen messages", {
-            userId: user.id,
-            roomIds: [message.room_id],
-            operation: "update",
-          });
+        addMessageAndSetSeen(user.id, message.room_id, message, seen);
+        if (rooms.filter((room) => room.id === message.room_id).length === 0) {
+          getRooms({ userId: user.id, roomIds: [message.room_id] });
         }
       } else {
         console.error(message);
+        toast.error(message);
       }
     });
-
-    setCreatedListeners(true);
-  }, [user, socket, rooms, createdListeners, addRoom, addMessageAndSetSeen]);
+  }, [user, socket, rooms, addMessageAndSetSeen, getRooms]);
 
   if (!user) return <Redirect to="/login" />;
 
