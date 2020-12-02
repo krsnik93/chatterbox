@@ -122,7 +122,7 @@ def message_event(data):
 def unseen_messages(data):
     user_id = data['userId']
     room_ids = data['roomIds']
-    operation = data['operation']
+
     if not Membership.query.filter(
             Membership.user_id == user_id,
             Membership.room_id.in_(room_ids)
@@ -139,13 +139,19 @@ def unseen_messages(data):
             [(and_(MessageSeen.user_id == user_id, MessageSeen.status == true()
                    ), 1)], else_=0)) == 0).subquery()
     rooms_with_counts = db.session.query(
-        Room.id, func.count(Message.id.in_(unseen_messages_subquery))
+        Room.id,
+        func.count(Message.id.in_(unseen_messages_subquery)),
+        func.max(Message.sent_at)
     ).filter(Room.id.in_(room_ids)).outerjoin(Message).join(
         unseen_messages_subquery,
         Message.id == unseen_messages_subquery.c.id
-    ).group_by(Room.id)
-    unseen_counts_by_room = {row[0]: row[1] for row in rooms_with_counts}
+    ).group_by(Room.id).all()
+    unseen_messages = {
+        row[0]: {
+            'count': row[1],
+            'max_datetime': row[2].isoformat()
+        } for row in rooms_with_counts
+    }
     emit("unseen messages", {
-        'unseen_counts_by_room': unseen_counts_by_room,
-        'operation': operation
+        'unseen_messages': unseen_messages,
     })
