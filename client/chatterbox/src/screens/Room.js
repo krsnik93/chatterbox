@@ -45,7 +45,7 @@ function Room(props) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
-  const [isAtTop, setIsAtTop] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
   const [scrolledToBottomInitially, setScrolledToBottomInitially] = useState(
     false
   );
@@ -83,9 +83,7 @@ function Room(props) {
   }, [user.id, room, setMessageSeen]);
 
   useEffect(() => {
-    if (!room) {
-      return;
-    }
+    if (!room) return;
     setHasMoreMessages(!(room.id in moreToFetch) || moreToFetch[room.id]);
   }, [room, moreToFetch]);
 

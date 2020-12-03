@@ -39,7 +39,6 @@ function Sidebar(props) {
   const [scrolledToTopInitially, setScrolledToTopInitially] = useState(false);
   const [joinedRooms, setJoinedRooms] = useState({});
   const [createdListener, setCreatedListener] = useState(false);
-  const [fetchedInitMsgs, setFetchedInitMsgs] = useState(false);
   const roomsRef = useRef();
 
   useEffect(() => {
@@ -109,20 +108,6 @@ function Sidebar(props) {
     }
     setJoinedRooms((joinedRooms) => ({ ...joinedRooms, ...newJoinedRooms }));
   }, [socket, user, memberships, setJoinedRooms]);
-
-  useEffect(() => {
-    if (!rooms.length || fetchedInitMsgs) return;
-    getMessages(
-      user.id,
-      rooms.map((room) => room.id),
-      rooms.map((room) =>
-        room.id in messages
-          ? Math.min(...messages[room.id].map((m) => new Date(m.sent_at)))
-          : ""
-      )
-    );
-    setFetchedInitMsgs(true);
-  }, [rooms, getMessages, fetchedInitMsgs, setFetchedInitMsgs]);
 
   useEffect(() => {
     if (!socket || !user) return;
