@@ -16,9 +16,9 @@ export const getRoomsBegin = () => ({
   type: GET_ROOMS_BEGIN,
 });
 
-export const getRoomsSuccess = ({ rooms, page, page_count }) => ({
+export const getRoomsSuccess = ({ rooms }) => ({
   type: GET_ROOMS_SUCCESS,
-  payload: { rooms, page, page_count },
+  payload: { rooms },
 });
 
 export const getRoomsFailure = (error) => ({

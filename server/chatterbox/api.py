@@ -138,37 +138,30 @@ class Users(Resource):
 class Rooms(Resource):
     @jwt_required
     @use_args({
-        "room_ids": fields.List(fields.Int()),
-        "page": fields.Int(),
+        "ids_to_fetch": fields.List(fields.Int()),
+        "ids_to_skip": fields.List(fields.Int()),
     }, location="query")
     def get(self, args, user_id):
         from .app import app
-        page = args.get('page', 1)
-        room_ids = args.get('room_ids', [])
+
+        ids_to_fetch = args.get('ids_to_fetch', [])
+        ids_to_skip = args.get('ids_to_skip', [])
 
         query = db.session.query(Room)
 
-        if len(room_ids) > 0:
-            query = query.filter(Room.id.in_(room_ids))
+        if len(ids_to_fetch) > 0:
+            query = query.filter(Room.id.in_(ids_to_fetch))
 
-        query = query.outerjoin(Message).join(
-            Membership).filter(Membership.user_id == user_id).group_by(
-            Room.id).order_by(func.coalesce(func.max(Message.sent_at),
-                                            Room.created_at).desc())
-        rooms = query.paginate(
-            page,
-            app.config['PAGINATION_PER_PAGE'],
-            False
-        ).items
+        if len(ids_to_skip) > 0:
+            query = query.filter(Room.id.notin_(ids_to_skip))
 
-        page_count = db.session.query(
-            func.count(Room.id) / app.config['PAGINATION_PER_PAGE'] + 1
-        ).join(Membership).filter(Membership.user_id == user_id).one()[0]
+        rooms = query.outerjoin(Message).join(Membership).filter(
+            Membership.user_id == user_id).group_by(Room.id).order_by(
+            func.coalesce(func.max(Message.sent_at), Room.created_at).desc()
+        ).limit(app.config['PAGINATION_PER_PAGE']).all()
 
         return make_response(jsonify(
             rooms=RoomSchema(many=True).dump(rooms),
-            page=page,
-            page_count=page_count
         ), 200)
 
     @jwt_required

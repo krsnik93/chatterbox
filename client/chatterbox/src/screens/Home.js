@@ -105,7 +105,7 @@ function Home(props) {
       if (status_code === 200) {
         addMessageAndSetSeen(user.id, message.room_id, message, seen);
         if (rooms.filter((room) => room.id === message.room_id).length === 0) {
-          getRooms({ userId: user.id, roomIds: [message.room_id] });
+          getRooms({ userId: user.id, idsToFetch: [message.room_id] });
         }
       } else {
         console.error(message);

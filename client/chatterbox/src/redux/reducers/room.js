@@ -16,8 +16,7 @@ import {
 
 const initialState = {
   rooms: [],
-  page: null,
-  pageCount: null,
+  moreToFetch: true,
   loadingGet: false,
   errorGet: null,
   loadingAdd: false,
@@ -39,8 +38,7 @@ const roomReducer = (state = initialState, action) => {
     case GET_ROOMS_SUCCESS:
       return {
         rooms: state.rooms.concat(action.payload.rooms),
-        page: action.payload.page,
-        pageCount: action.payload.page_count,
+        moreToFetch: !!action.payload.rooms.length,
         loadingGet: false,
         errorGet: null,
       };

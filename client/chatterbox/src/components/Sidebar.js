@@ -22,8 +22,7 @@ function Sidebar(props) {
     rooms,
     loading,
     error,
-    page,
-    pageCount,
+    moreToFetch,
     messages,
     counts,
     memberships,
@@ -36,8 +35,8 @@ function Sidebar(props) {
     sortRooms,
   } = props;
 
-  const [hasMoreRooms, setHasMoreRooms] = useState(true);
-  const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [scrolledToTopInitially, setScrolledToTopInitially] = useState(false);
   const [joinedRooms, setJoinedRooms] = useState({});
   const [createdListener, setCreatedListener] = useState(false);
   const [fetchedInitMsgs, setFetchedInitMsgs] = useState(false);
@@ -69,17 +68,12 @@ function Sidebar(props) {
   }, [error]);
 
   useEffect(() => {
-    if (!pageCount) return;
-    setHasMoreRooms(!page || !pageCount || page < pageCount);
-  }, [page, pageCount]);
-
-  useEffect(() => {
-    if (!page || page === 1) {
+    if (!scrolledToTopInitially) {
       roomsRef.current.scrollTo(0, 0);
+      setScrolledToTopInitially(true);
     } else {
-      roomsRef.current.scrollTo(0, roomsRef.current.scrollHeight * (3 / 4));
     }
-  }, [rooms, page]);
+  }, [scrolledToTopInitially, setScrolledToTopInitially]);
 
   const onScroll = (e) => {
     setIsAtBottom(
@@ -88,23 +82,12 @@ function Sidebar(props) {
   };
 
   useEffect(() => {
-    if (!user || loading || error || !hasMoreRooms) return;
-    const pg = page + 1 || 1;
-    if (pageCount && pg > pageCount) return;
-    if (pageCount && !isAtBottom) return;
-    console.log(`Getting page ${pg} of rooms.`);
-    getRooms({ userId: user.id, page: pg });
+    if (!user || loading || error || !moreToFetch) return;
+    if (moreToFetch && !isAtBottom) return;
+    console.log("Getting a batch of rooms.");
+    getRooms({ userId: user.id, idsToSkip: rooms.map((room) => room.id) });
     return () => setIsAtBottom(false);
-  }, [
-    user,
-    page,
-    pageCount,
-    loading,
-    error,
-    isAtBottom,
-    hasMoreRooms,
-    getRooms,
-  ]);
+  }, [user, rooms, loading, error, isAtBottom, setIsAtBottom, getRooms]);
 
   useEffect(() => {
     if (!user) return;
@@ -143,7 +126,7 @@ function Sidebar(props) {
 
   useEffect(() => {
     if (!socket || !user) return;
-    console.log("fetching unseen message");
+    console.log("Fetching unseen message counts.");
     socket.emit("unseen messages", {
       userId: user.id,
       roomIds: rooms.map((room) => room.id),
@@ -203,8 +186,7 @@ const mapStateToProps = (state) => ({
   rooms: state.roomReducer.rooms,
   loading: state.roomReducer.loadingGet,
   error: state.roomReducer.errorGet,
-  page: state.roomReducer.page,
-  pageCount: state.roomReducer.pageCount,
+  moreToFetch: state.roomReducer.moreToFetch,
   counts: state.unseenReducer.counts,
   messages: state.messageReducer.messages,
   activeRoomId: state.tabReducer.activeRoomId,

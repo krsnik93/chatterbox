@@ -16,12 +16,12 @@ import {
 } from "../actions/room";
 import { api } from "../../axios";
 
-export function getRooms({ userId, roomIds = [], page = 1 } = {}) {
+export function getRooms({ userId, idsToFetch = [], idsToSkip = [] } = {}) {
   return (dispatch) => {
     dispatch(getRoomsBegin());
 
     const queryStr = queryString.stringify(
-      { room_ids: roomIds, page: page },
+      { ids_to_fetch: idsToFetch, ids_to_skip: idsToSkip },
       { arrayFormat: "none" }
     );
 
