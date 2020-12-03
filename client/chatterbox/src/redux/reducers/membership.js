@@ -58,6 +58,11 @@ const membershipReducer = (state = initialState, action) => {
         loadingCreate: false,
         errorCreate: action.payload.errorCreate,
       };
+    case DELETE_MEMBERSHIP:
+      return {
+        ...state,
+        memberships: memberships.filter((m) => m !== action.payload.roomId),
+      };
     default:
       return state;
   }

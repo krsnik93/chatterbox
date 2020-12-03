@@ -14,6 +14,7 @@ import {
   deleteRoomSuccess,
   deleteRoomFailure,
 } from "../actions/room";
+import { deleteMembership } from "../actions/membership";
 import { api } from "../../axios";
 
 export function getRooms({ userId, idsToFetch = [], idsToSkip = [] } = {}) {
@@ -61,6 +62,7 @@ export function leaveRoom(userId, roomId) {
         if (status === 200) {
           const { room_id } = response.data;
           dispatch(leaveRoomSuccess(room_id));
+          dispatch(deleteMembership(room_id));
           return Promise.resolve(true);
         } else {
           dispatch(leaveRoomFailure(response));
@@ -83,6 +85,7 @@ export function deleteRoom(userId, roomId) {
         if (status === 200) {
           const { room_id } = response.data;
           dispatch(deleteRoomSuccess(room_id));
+          dispatch(deleteMembership(room_id));
           return Promise.resolve(true);
         } else {
           dispatch(deleteRoomFailure(response));

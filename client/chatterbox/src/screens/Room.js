@@ -108,6 +108,7 @@ function Room(props) {
   const onConfirmLeave = () => {
     leaveRoom(user.id, room.id).then((status) => {
       if (status) {
+        socket.emit("leave", { username: user.username, room: room.id });
         toast.success("Successfully left room.");
       }
     });
@@ -116,6 +117,7 @@ function Room(props) {
   const onConfirmDelete = () => {
     deleteRoom(user.id, room.id).then((status) => {
       if (status) {
+        socket.emit("leave", { username: user.username, room: room.id });
         toast.success("Successfully deleted room.");
       }
     });
