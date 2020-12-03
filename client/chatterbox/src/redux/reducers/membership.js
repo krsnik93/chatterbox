@@ -5,6 +5,7 @@ import {
   CREATE_MEMBERSHIPS_BEGIN,
   CREATE_MEMBERSHIPS_FAILURE,
   CREATE_MEMBERSHIPS_SUCCESS,
+  DELETE_MEMBERSHIP,
 } from "../actions/membership";
 
 const initialState = {
@@ -61,7 +62,7 @@ const membershipReducer = (state = initialState, action) => {
     case DELETE_MEMBERSHIP:
       return {
         ...state,
-        memberships: memberships.filter((m) => m !== action.payload.roomId),
+        memberships: [...state.memberships].filter((m) => m !== action.payload.roomId),
       };
     default:
       return state;
