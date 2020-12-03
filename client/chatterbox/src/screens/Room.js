@@ -35,6 +35,7 @@ function Room(props) {
     leaveRoom,
     deleteRoom,
     getMessages,
+    activeRoomId,
     setActiveRoomId,
     setMessageSeen,
   } = props;
@@ -44,48 +45,12 @@ function Room(props) {
   const [noRoom, setNoRoom] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
   const [scrolledToBottomInitially, setScrolledToBottomInitially] = useState(
     false
   );
   const bottomRef = useRef();
   const messagesRef = useRef();
-
-  useEffect(() => {
-    const matchingRooms = rooms.filter(
-      (room) => room.id === parseInt(roomId, 10)
-    );
-    if (matchingRooms.length === 0) {
-      setNoRoom(true);
-    } else if (matchingRooms.length > 0) {
-      const room = matchingRooms.pop();
-      setRoom(room);
-    }
-  }, [rooms, roomId]);
-
-  useEffect(() => {
-    if (room) {
-      setActiveRoomId(room.id);
-    }
-  }, [room, setActiveRoomId]);
-
-  useEffect(() => {
-    if (!room) return;
-    setMessages([room.id] in allRoomMessages ? allRoomMessages[room.id] : []);
-  }, [room, allRoomMessages]);
-
-  useEffect(() => {
-    if (room) {
-      console.log("setting messages seen");
-      setMessageSeen(user.id, room.id, [], true, true);
-    }
-  }, [user.id, room, setMessageSeen]);
-
-  useEffect(() => {
-    if (!room) return;
-    setHasMoreMessages(!(room.id in moreToFetch) || moreToFetch[room.id]);
-  }, [room, moreToFetch]);
 
   const onSubmit = (event) => {
     event.preventDefault();
@@ -128,6 +93,43 @@ function Room(props) {
     bottomRef.current.scrollIntoView({ behavior: "smooth" });
   }, [bottomRef]);
 
+  const onScroll = (e) => {
+    setIsAtTop(e.target.scrollTop === 0);
+  };
+
+  useEffect(() => {
+    const matchingRooms = rooms.filter(
+      (room) => room.id === parseInt(roomId, 10)
+    );
+    if (matchingRooms.length === 0) {
+      setNoRoom(true);
+    } else if (matchingRooms.length > 0) {
+      const room = matchingRooms.pop();
+      setRoom(room);
+    }
+  }, [rooms.length, roomId]);
+
+  useEffect(() => {
+    if (!room) return;
+    setActiveRoomId(room.id);
+  }, [room, setActiveRoomId]);
+
+  useEffect(() => {
+    if (!room) return;
+    setMessages([room.id] in allRoomMessages ? allRoomMessages[room.id] : []);
+  }, [room, allRoomMessages]);
+
+  useEffect(() => {
+    if (!room) return;
+    console.log(`Updating seen status for all messages in room ${room.id}.`);
+    setMessageSeen(user.id, room.id, [], true, true);
+  }, [user.id, room, setMessageSeen]);
+
+  useEffect(() => {
+    if (!room) return;
+    setIsAtTop(true);
+  }, [room, setIsAtTop]);
+
   useEffect(() => {
     if (!room || !(room.id in moreToFetch)) return;
 
@@ -143,12 +145,16 @@ function Room(props) {
   }, [messages.length]);
 
   useEffect(() => {
+    console.log("room: ", room);
+    console.log("loading: ", loadingGetMessages);
+    console.log("moreToFetch: ", moreToFetch);
+    console.log("isAtTop: ", isAtTop);
     if (
       !user ||
       !room ||
       loadingGetMessages ||
-      !hasMoreMessages ||
-      (hasMoreMessages && !isAtTop)
+      (room.id in moreToFetch && !moreToFetch[room.id]) ||
+      (!!moreToFetch?.[room.id] && !isAtTop)
     ) {
       return;
     }
@@ -166,19 +172,7 @@ function Room(props) {
     );
 
     return () => setIsAtTop(false);
-  }, [
-    user,
-    room,
-    loadingGetMessages,
-    isAtTop,
-    moreToFetch,
-    getMessages,
-    hasMoreMessages,
-  ]);
-
-  const onScroll = (e) => {
-    setIsAtTop(e.target.scrollTop === 0);
-  };
+  }, [user, room, moreToFetch, loadingGetMessages, isAtTop, getMessages]);
 
   useEffect(() => {
     if (!errorGetMessages) return;
@@ -220,7 +214,7 @@ function Room(props) {
                 </Spinner>
               </div>
             )}
-            {!hasMoreMessages && (
+            {room?.id in moreToFetch && !moreToFetch[room.id] && (
               <div className={styles.chatBeginning}>(Beginning of chat)</div>
             )}
             {messages.map((message, index) => (
