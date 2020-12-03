@@ -132,13 +132,15 @@ function Room(props) {
     if (!room || !(room.id in moreToFetch)) return;
 
     if (!scrolledToBottomInitially) {
+      console.log("Scrolling to bottom.");
       scrollToBottom();
       setScrolledToBottomInitially(true);
     } else {
+      console.log("Scrolling to almost top.");
       messagesRef.current.scrollTop = 50;
       setIsAtTop(false);
     }
-  }, [messages, moreToFetch, room, scrollToBottom, setIsAtTop]);
+  }, [messages.length]);
 
   useEffect(() => {
     if (
@@ -150,6 +152,8 @@ function Room(props) {
     ) {
       return;
     }
+
+    console.log("Getting a batch of messages.");
 
     getMessages(
       user.id,
