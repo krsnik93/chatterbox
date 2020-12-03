@@ -23,7 +23,7 @@ function Header(props) {
     <>
       <Navbar className={styles.navbar} expand="lg">
         <Navbar.Brand href="#home" className={styles.brand}>
-          Chatterbox
+          CHATTERBOX
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
