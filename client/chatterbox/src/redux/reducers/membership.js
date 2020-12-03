@@ -62,7 +62,9 @@ const membershipReducer = (state = initialState, action) => {
     case DELETE_MEMBERSHIP:
       return {
         ...state,
-        memberships: [...state.memberships].filter((m) => m !== action.payload.roomId),
+        memberships: [...state.memberships].filter(
+          (m) => m !== action.payload.roomId
+        ),
       };
     default:
       return state;

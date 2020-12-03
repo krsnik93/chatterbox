@@ -143,7 +143,7 @@ function SignUpForm(props) {
         </Row>
         <Row className={styles.row}>
           <Col className={styles.buttonColumn}>
-            <Button type="submit" variant="dark" className={styles.button}>
+            <Button type="submit" variant="success" className={styles.button}>
               Sign Up
             </Button>
           </Col>

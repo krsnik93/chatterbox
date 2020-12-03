@@ -1,0 +1,9 @@
+.navbar {
+    background-color: var(--color-primary);
+}
+.brand, .navLink, .navDropdown > a {
+    color: var(--color-secondary) !important;
+}
+.brand {
+    font-family: Helvetica;
+}

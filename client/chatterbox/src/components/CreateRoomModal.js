@@ -84,10 +84,10 @@ const CreateRoomModal = (props) => {
         />
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="secondary" onClick={onHide}>
+        <Button variant="outline-secondary" onClick={onHide}>
           Cancel
         </Button>
-        <Button variant="primary" type="submit" onClick={onCreate}>
+        <Button variant="success" type="submit" onClick={onCreate}>
           Create
         </Button>
       </Modal.Footer>

@@ -95,8 +95,8 @@ function LoginForm(props) {
                 ref={register({
                   required: "Password is required.",
                   minLength: {
-                    value: 3,
-                    message: "Password has to have at least 3 characters.",
+                    value: 8,
+                    message: "Password has to have at least 8 characters.",
                   },
                   maxLength: {
                     value: 128,
@@ -115,7 +115,7 @@ function LoginForm(props) {
         </Row>
         <Row className={styles.row}>
           <Col className={styles.buttonColumn}>
-            <Button type="submit" variant="dark" className={styles.button}>
+            <Button type="submit" variant="success" className={styles.button}>
               Login
             </Button>
           </Col>
