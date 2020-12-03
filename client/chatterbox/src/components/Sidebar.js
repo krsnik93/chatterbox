@@ -132,7 +132,11 @@ function Sidebar(props) {
     getMessages(
       user.id,
       rooms.map((room) => room.id),
-      1
+      rooms.map((room) =>
+        room.id in messages
+          ? Math.min(...messages[room.id].map((m) => new Date(m.sent_at)))
+          : ""
+      )
     );
     setFetchedInitMsgs(true);
   }, [rooms, getMessages, fetchedInitMsgs, setFetchedInitMsgs]);

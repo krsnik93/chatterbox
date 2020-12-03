@@ -1,9 +1,10 @@
+from datetime import datetime
 from flask import Blueprint, jsonify, make_response, request
 from flask_jwt_extended import (create_access_token, create_refresh_token,
                                 get_jwt_identity, jwt_refresh_token_required,
                                 jwt_required)
 from flask_restful import Api, Resource
-from sqlalchemy.sql.expression import case, func
+from sqlalchemy.sql.expression import case, func, or_, and_
 from webargs import fields
 from webargs.flaskparser import use_args
 
@@ -293,13 +294,14 @@ class Messages(Resource):
     @jwt_required
     @use_args({
         "room_ids": fields.List(fields.Int()),
-        "page": fields.Int(),
+        "max_milliseconds": fields.List(fields.String()),
     }, location="query")
     def get(self, args, user_id, room_id=None):
         from .app import app
 
-        page = args.get('page', 1)
         room_ids = [room_id] if room_id else args.get('room_ids')
+        max_milliseconds = args.get('max_milliseconds', [])
+        max_milliseconds = [int(m) if m else None for m in max_milliseconds]
 
         if Membership.query.filter(
             Membership.user_id == user_id,
@@ -312,19 +314,34 @@ class Messages(Resource):
                 403
             )
 
-        subquery = db.session.query(
+        query = db.session.query(
             Message.id,
             func.rank().over(
                 order_by=Message.sent_at.desc(),
                 partition_by=Message.room_id
             ).label('rank')
-        ).filter(Message.room_id.in_(room_ids)).subquery()
+        ).filter(Message.room_id.in_(room_ids))
 
-        per_page = app.config['PAGINATION_PER_PAGE']
-        message_dicts = db.session.query(subquery.c.id).filter(
-            subquery.c.rank.between(
-                ((page - 1) * per_page + 1), page * per_page)
-        ).order_by(subquery.c.rank.desc()).all()
+        if len(max_milliseconds) > 0:
+            filters = []
+            for (room_id, timestamp) in zip(room_ids, max_milliseconds):
+                if timestamp:
+                    filters.append(
+                        and_(
+                            Message.room_id == room_id,
+                            Message.sent_at < datetime.utcfromtimestamp(
+                                timestamp / 1000
+                            )
+                        )
+                    )
+            if filters:
+                query = query.filter(or_(*filters))
+
+        query = query.subquery()
+
+        message_dicts = db.session.query(query.c.id).filter(
+            query.c.rank <= app.config['PAGINATION_PER_PAGE']
+        ).order_by(query.c.rank.desc()).all()
 
         message_ids = [id_ for (id_,) in message_dicts]
 
@@ -341,17 +358,9 @@ class Messages(Resource):
         for m in messages_serialized:
             messages_by_room_id[m['room_id']].append(m)
 
-        page_counts_by_room_id = db.session.query(
-            Message.room_id,
-            (func.count(Message.id) / 30 + 1).label('count')
-        ).filter(Message.room_id.in_(room_ids)).group_by(Message.room_id).all()
-
-        page_counts = {r.room_id: r.count for r in page_counts_by_room_id}
         return make_response(jsonify(
             messages=messages_by_room_id,
             room_ids=room_ids,
-            page=page,
-            page_counts=page_counts
         ), 200)
 
 

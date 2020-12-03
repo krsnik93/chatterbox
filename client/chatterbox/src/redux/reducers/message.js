@@ -12,8 +12,7 @@ import {
 
 const initialState = {
   messages: {},
-  pages: {},
-  pageCounts: {},
+  moreToFetch: {},
   loadingGet: false,
   errorGet: null,
   loadingAdd: false,
@@ -41,18 +40,14 @@ const messageReducer = (state = initialState, action) => {
             ])
           ),
         },
-        pages: {
-          ...state.pages,
+        moreToFetch: {
+          ...state.moreToFetch,
           ...Object.fromEntries(
             Object.entries(action.payload.messages).map(([roomId, msgs]) => [
               roomId,
-              action.payload.page,
+              msgs.length > 0,
             ])
           ),
-        },
-        pageCounts: {
-          ...state.pageCounts,
-          ...action.payload.page_counts,
         },
         loadingGet: false,
         errorGet: null,

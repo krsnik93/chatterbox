@@ -27,12 +27,11 @@ function Room(props) {
     user,
     rooms,
     messages: allRoomMessages,
+    moreToFetch,
     loadingGetMessages,
     errorGetMessages,
     errorAddMessage,
     errorSetSeenMessage,
-    pages,
-    pageCounts,
     leaveRoom,
     deleteRoom,
     getMessages,
@@ -47,6 +46,9 @@ function Room(props) {
   const [messages, setMessages] = useState([]);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [isAtTop, setIsAtTop] = useState(false);
+  const [scrolledToBottomInitially, setScrolledToBottomInitially] = useState(
+    false
+  );
   const bottomRef = useRef();
   const messagesRef = useRef();
 
@@ -84,10 +86,8 @@ function Room(props) {
     if (!room) {
       return;
     }
-    setHasMoreMessages(
-      !(room.id in pages) || pages[room.id] < pageCounts[room.id]
-    );
-  }, [room, pages, pageCounts]);
+    setHasMoreMessages(!(room.id in moreToFetch) || moreToFetch[room.id]);
+  }, [room, moreToFetch]);
 
   const onSubmit = (event) => {
     event.preventDefault();
@@ -129,32 +129,37 @@ function Room(props) {
   }, [bottomRef]);
 
   useEffect(() => {
-    if (!room || !(room.id in pages)) return;
+    if (!room || !(room.id in moreToFetch)) return;
 
-    if (pages?.[room.id] === 1) {
+    if (!scrolledToBottomInitially) {
       scrollToBottom();
+      setScrolledToBottomInitially(true);
     } else {
       messagesRef.current.scrollTop = 50;
       setIsAtTop(false);
     }
-  }, [messages, pages, room, scrollToBottom]);
+  }, [messages, moreToFetch, room, scrollToBottom, setIsAtTop]);
 
   useEffect(() => {
-    if (!user || !room || loadingGetMessages || !hasMoreMessages) {
+    if (
+      !user ||
+      !room ||
+      loadingGetMessages ||
+      !hasMoreMessages ||
+      (hasMoreMessages && !isAtTop)
+    ) {
       return;
     }
 
-    if (room.id in pages && !isAtTop) {
-      return;
-    }
-
-    const page = room.id in pages ? pages[room.id] + 1 : 1;
-    if (page > pageCounts?.[room.id]) {
-      return;
-    }
-
-    console.log(`Getting page ${page} messages for room ${room.id}.`);
-    getMessages(user.id, room.id, page);
+    getMessages(
+      user.id,
+      [room.id],
+      [
+        messages.length > 0
+          ? Math.min(...messages.map((m) => new Date(m.sent_at)))
+          : "",
+      ]
+    );
 
     return () => setIsAtTop(false);
   }, [
@@ -162,8 +167,7 @@ function Room(props) {
     room,
     loadingGetMessages,
     isAtTop,
-    pages,
-    pageCounts,
+    moreToFetch,
     getMessages,
     hasMoreMessages,
   ]);
@@ -248,8 +252,7 @@ const mapStateToProps = (state) => ({
   tokens: state.userReducer.tokens,
   rooms: state.roomReducer.rooms,
   messages: state.messageReducer.messages,
-  pages: state.messageReducer.pages,
-  pageCounts: state.messageReducer.pageCounts,
+  moreToFetch: state.messageReducer.moreToFetch,
   loadingGetMessages: state.messageReducer.loadingGet,
   errorGetMessages: state.messageReducer.errorGet,
   errorAddMessage: state.messageReducer.errorAdd,
