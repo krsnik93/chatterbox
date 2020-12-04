@@ -4,30 +4,14 @@ import {
   AUTH_USER_SUCCESS,
 } from "../actions/user";
 
-function loadUserInfoFromLocalStorage() {
-  const nullTokens = { accessToken: null, refreshToken: null };
-  const nullUser = null;
-  try {
-    const tokens =
-      JSON.parse(localStorage.getItem("state.userReducer.tokens")) ||
-      nullTokens;
-    const user =
-      JSON.parse(localStorage.getItem("state.userReducer.user")) || nullUser;
-    return { tokens, user };
-  } catch (err) {
-    return { nullTokens, nullUser };
-  }
-}
-
 const initialState = {
-  user: null,
-  tokens: {
+  user: JSON.parse(localStorage.getItem("user")) || null,
+  tokens: JSON.parse(localStorage.getItem("tokens")) || {
     accessToken: null,
     refreshToken: null,
   },
   loading: false,
   error: null,
-  ...loadUserInfoFromLocalStorage(),
 };
 
 const userReducer = (state = initialState, action) => {

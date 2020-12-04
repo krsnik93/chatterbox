@@ -5,6 +5,7 @@ import Tab from "react-bootstrap/Tab";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 import { toast } from "react-toastify";
+import { useIdleTimer } from "react-idle-timer";
 
 import Room from "./Room";
 import Header from "../components/Header";
@@ -29,24 +30,11 @@ function Home(props) {
   const { path } = useRouteMatch();
   const socket = useContext(SocketContext);
   const [createdListeners, setCreatedListeners] = useState(false);
-
-  useEffect(() => {
-    if (!user) {
-      localStorage.removeItem("state.userReducer.user");
-      localStorage.removeItem("state.userReducer.tokens");
-      logoutUser();
-    }
-  }, [user, logoutUser]);
-
-  useEffect(() => {
-    if (!user || !tokens) return;
-    try {
-      localStorage.setItem("state.userReducer.user", JSON.stringify(user));
-      localStorage.setItem("state.userReducer.tokens", JSON.stringify(tokens));
-    } catch (err) {
-      console.log(err);
-    }
-  }, [user, tokens]);
+  const { getRemainingTime, getLastActiveTime } = useIdleTimer({
+    timeout: 1000 * 60 * 15,
+    onIdle: logoutUser,
+    debounce: 500,
+  });
 
   useEffect(() => {
     if (!user || createdListeners) {
