@@ -87,6 +87,7 @@ class Users(Resource):
             users = (
                 db.session.query(User)
                 .filter(User.username.like(f"%{username}%"))
+                .order_by(User.username)
                 .paginate(
                     page, current_app.config["PAGINATION_PER_PAGE"], False
                 )
