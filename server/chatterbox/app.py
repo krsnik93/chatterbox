@@ -1,10 +1,10 @@
 from flask import Flask
-from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy_utils import create_database, database_exists
 
 
-def create_app(config_filename='config.py'):
+def create_app(config_object):
     app = Flask(__name__)
-    app.config.from_pyfile(config_filename)
+    app.config.from_object(config_object)
     register_extensions(app)
     register_blueprint(app)
     return app
@@ -12,11 +12,11 @@ def create_app(config_filename='config.py'):
 
 def register_extensions(app):
     from .database import db
+    from .extensions import bcrypt, cors, jwt, migrate
     from .socketio import socketio
-    from .extensions import (migrate, bcrypt, jwt, cors)
 
-    if not database_exists(app.config['SQLALCHEMY_DATABASE_URI']):
-        create_database(app.config['SQLALCHEMY_DATABASE_URI'])
+    if not database_exists(app.config["SQLALCHEMY_DATABASE_URI"]):
+        create_database(app.config["SQLALCHEMY_DATABASE_URI"])
     db.init_app(app)
     db.create_all(app=app)
 
@@ -30,8 +30,6 @@ def register_extensions(app):
 
 def register_blueprint(app):
     from .api import api_blueprint
+
     app.register_blueprint(api_blueprint)
     return app
-
-
-app = create_app()

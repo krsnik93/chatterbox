@@ -1,4 +1,6 @@
-from chatterbox.app import app
+from chatterbox.app import create_app
+from chatterbox.config import DevelopmentConfig
 
-if __name__ == '__main__':
-    app.extensions['socketio'].run(app)
+if __name__ == "__main__":
+    app = create_app(DevelopmentConfig)
+    app.extensions["socketio"].run(app)
