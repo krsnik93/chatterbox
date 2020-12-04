@@ -72,7 +72,7 @@ function Home(props) {
       if (status_code === 200) {
         addRoom(room).then((roomOrNull) => {
           if (roomOrNull) {
-            toast.success(`Successfully added room '${roomOrNull.name}'.`);
+            toast.success(message);
           }
         });
       } else {
