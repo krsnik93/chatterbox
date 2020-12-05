@@ -13,6 +13,8 @@ def app():
 def db(app):
     with app.app_context():
         db = app.extensions["sqlalchemy"].db
+        db.drop_all()
         db.create_all()
         yield db
+        db.session.rollback()
         db.drop_all()

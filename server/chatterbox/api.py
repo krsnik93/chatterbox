@@ -211,9 +211,7 @@ class Rooms(Resource):
 
         if User.query.filter_by(username=room.name).one_or_none() is not None:
             return make_response(
-                jsonify(
-                    message=("Room name must not match another username.")
-                ),
+                jsonify(message="Room name must not match another username."),
                 403,
             )
 
@@ -226,6 +224,12 @@ class Rooms(Resource):
 
     @jwt_required
     def delete(self, user_id, room_id):
+        if not Room.query.filter_by(id=room_id).one_or_none():
+            return make_response(
+                jsonify(message=("There is no room with the provided id.")),
+                403,
+            )
+
         room = Room.query.filter_by(
             id=room_id, created_by=user_id
         ).one_or_none()
@@ -240,6 +244,8 @@ class Rooms(Resource):
                 ),
                 403,
             )
+
+        room_id = room.id
 
         with session_scope() as session:
             session.delete(room)
@@ -304,12 +310,14 @@ class Memberships(Resource):
 
     @jwt_required
     def delete(self, user_id, room_id):
+        user_id, room_id = int(user_id), int(room_id)
+
         if not Membership.query.filter_by(
             user_id=user_id, room_id=room_id
         ).one_or_none():
             return make_response(
                 jsonify(
-                    message=("User must be a member of the room to leave it.")
+                    message="User must be a member of the room to leave it."
                 ),
                 403,
             )
@@ -345,7 +353,7 @@ class Messages(Resource):
             return make_response(
                 jsonify(
                     message=(
-                        "User must be a member of the room to add other users."
+                        "User must be a member of the room to get messages."
                     )
                 ),
                 403,
@@ -418,11 +426,6 @@ class MessageSeens(Resource):
         status = request.json.get("status")
         message_ids = request.json.get("messageIds")
         set_all = request.json.get("all")
-
-        if status is None:
-            return make_response(
-                jsonify(message="Missing argument 'status'."), 403
-            )
 
         if set_all:
             message_ids = [

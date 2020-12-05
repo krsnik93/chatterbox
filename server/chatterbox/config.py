@@ -17,5 +17,7 @@ class DevelopmentConfig(BaseConfig):
 
 
 class TestingConfig(BaseConfig):
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = (
+        "postgresql://postgres:postgres@localhost/chatterbox_test"
+    )
     TESTING = True
