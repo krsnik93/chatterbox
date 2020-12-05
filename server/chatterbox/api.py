@@ -83,13 +83,13 @@ class Users(Resource):
     @jwt_required
     def get(self):
         username_pattern = request.args.get("username_pattern", "")
-        starting_user_id = request.args.get("starting_user_id", 0)
+        username_offset = request.args.get("username_offset", "")
 
         users = (
             db.session.query(User)
             .filter(User.username.like(f"%{username_pattern}%"))
             .order_by(User.username)
-            .filter(User.id > starting_user_id)
+            .filter(User.username > username_offset)
             .limit(current_app.config["PAGINATION_PER_PAGE"])
             .all()
         )

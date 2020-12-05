@@ -34,16 +34,15 @@ const CreateRoomModal = (props) => {
   };
 
   const onChangeUserSearch = (userSearch, loadedOptions) => {
-    const startingUserId = Math.max(
-      ...(loadedOptions.length ? loadedOptions.map((o) => o.value.id) : [0])
-    );
+    const usernameOffset = loadedOptions.length
+      ? loadedOptions[loadedOptions.length - 1].value.username
+      : "";
     return api
       .get(
-        `/users?username_pattern=${userSearch}&starting_user_id=${startingUserId}`
+        `/users?username_pattern=${userSearch}&username_offset=${usernameOffset}`
       )
       .then((response) => {
         let { users } = response.data;
-        console.log(users);
         users = users.filter((u) => u.username !== user.username);
         return {
           options: processUsers(users),
