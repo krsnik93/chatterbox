@@ -166,7 +166,7 @@ function Room(props) {
       [room.id],
       [
         messages.length > 0
-          ? Math.min(...messages.map((m) => new Date(m.sent_at)))
+          ? Math.min(...messages.map((m) => new Date(m.sent_at))) / 1000
           : "",
       ]
     );

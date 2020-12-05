@@ -376,7 +376,7 @@ class Messages(Resource):
                         and_(
                             Message.room_id == room_id,
                             Message.sent_at
-                            < datetime.utcfromtimestamp(timestamp / 1000),
+                            < datetime.utcfromtimestamp(timestamp),
                         )
                     )
             if filters:
