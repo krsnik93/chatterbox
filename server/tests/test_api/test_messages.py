@@ -122,11 +122,9 @@ def test_get_pagination(
         assert len(response.json["messages"]["1"]) == (
             app.config["PAGINATION_PER_PAGE"]
         )
-        assert set(m["id"] for m in response.json["messages"]["1"]) == (
-            set(
-                range(
-                    expected_start_id,
-                    expected_start_id + app.config["PAGINATION_PER_PAGE"],
-                )
+        assert [m["id"] for m in response.json["messages"]["1"]] == list(
+            range(
+                expected_start_id,
+                expected_start_id + app.config["PAGINATION_PER_PAGE"],
             )
         )
