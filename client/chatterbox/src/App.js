@@ -6,14 +6,16 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Provider } from "react-redux";
 
 import Login from "./screens/Login";
 import Home from "./screens/Home";
+import store from "./redux/store";
 import "./App.css";
 
 function App() {
   return (
-    <>
+    <Provider store={store}>
       <Router>
         <Switch>
           <Route path="/login" component={Login} />
@@ -22,7 +24,7 @@ function App() {
         </Switch>
       </Router>
       <ToastContainer />
-    </>
+    </Provider>
   );
 }
 
