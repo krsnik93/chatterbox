@@ -28,13 +28,15 @@ class TestUsers:
             )
             assert response.status_code == 200
             assert response.json["users"] == [
-                {"username": "test_username_1"},
-                {"username": "test_username_2"},
+                {"id": 1, "username": "test_username_1"},
+                {"id": 2, "username": "test_username_2"},
             ]
 
             response = client.get(
-                "/users?username=test_username_1",
+                "/users?username_pattern=test_username_1",
                 headers={"Authorization": f"Bearer {access_token}"},
             )
             assert response.status_code == 200
-            assert response.json["users"] == [{"username": "test_username_1"}]
+            assert response.json["users"] == [
+                {"id": 1, "username": "test_username_1"}
+            ]

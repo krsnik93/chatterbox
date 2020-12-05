@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import AsyncSelect from "react-select/async";
+import { AsyncPaginate } from "react-select-async-paginate";
 import { connect } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -13,10 +14,11 @@ const CreateRoomModal = (props) => {
   const { socket, user, showModal, setShowModal } = props;
   const [roomName, setRoomName] = useState("");
   const [users, setUsers] = useState([]);
+  const [startingUserId, setStartingUserId] = useState(0);
 
   const processUsers = (users) => {
     const processedUsers = users.map((user, index) => ({
-      value: user.username,
+      value: user,
       label: user.username,
     }));
     return processedUsers;
@@ -31,20 +33,35 @@ const CreateRoomModal = (props) => {
     setRoomName(event.target.value);
   };
 
-  const onChangeUserSearch = (userSearch) =>
-    api
-      .get(`/users?username=${userSearch}`)
+  const onChangeUserSearch = (userSearch, loadedOptions) => {
+    const startingUserId = Math.max(
+      ...(loadedOptions.length ? loadedOptions.map((o) => o.value.id) : [0])
+    );
+    return api
+      .get(
+        `/users?username_pattern=${userSearch}&starting_user_id=${startingUserId}`
+      )
       .then((response) => {
         let { users } = response.data;
+        console.log(users);
         users = users.filter((u) => u.username !== user.username);
-        return processUsers(users);
+        return {
+          options: processUsers(users),
+          hasMore: !!users.length,
+        };
       })
       .catch((error) => {
         console.log(error);
+        return {
+          options: [],
+          hasMore: false,
+        };
       });
+  };
 
   const onChange = (selectedOptions) => {
-    const usernames = selectedOptions.map((o, i) => o.value);
+    console.log();
+    const usernames = (selectedOptions || []).map((o, i) => o.value.username);
     setUsers(usernames);
   };
 
@@ -74,7 +91,7 @@ const CreateRoomModal = (props) => {
           />
         </Form>
         <h4>Add other users to the room</h4>
-        <AsyncSelect
+        <AsyncPaginate
           placeholder="Find users..."
           isSearchable
           isMulti

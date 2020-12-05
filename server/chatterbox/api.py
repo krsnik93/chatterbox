@@ -82,24 +82,27 @@ class AccessTokens(Resource):
 class Users(Resource):
     @jwt_required
     def get(self):
-        page = request.args.get("page", 1, type=int)
-        username = request.args.get("username")
-        if username:
-            users = (
-                db.session.query(User)
-                .filter(User.username.like(f"%{username}%"))
-                .order_by(User.username)
-                .paginate(
-                    page, current_app.config["PAGINATION_PER_PAGE"], False
-                )
-                .items
-            )
-        else:
-            users = db.session.query(User).all()
+        username_pattern = request.args.get("username_pattern", "")
+        starting_user_id = request.args.get("starting_user_id", 0)
+
+        users = (
+            db.session.query(User)
+            .filter(User.username.like(f"%{username_pattern}%"))
+            .order_by(User.username)
+            .filter(User.id > starting_user_id)
+            .limit(current_app.config["PAGINATION_PER_PAGE"])
+            .all()
+        )
+
         return make_response(
             jsonify(
-                users=UserSchema(only=("username",), many=True).dump(users),
-                page=page,
+                users=UserSchema(
+                    only=(
+                        "id",
+                        "username",
+                    ),
+                    many=True,
+                ).dump(users),
             ),
             200,
         )
