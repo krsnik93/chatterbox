@@ -580,8 +580,7 @@ class TestMessages:
                     f"/users/{_user_with_msgs.id}/rooms/1/messages_seen",
                     json={"status": True, "messageIds": [1]},
                     headers={
-                        "Authorization":
-                            f"Bearer {_user_with_msgs.access_token}"
+                        "Authorization": f"Bearer {_user_with_msgs.access_token}"
                     },
                 )
             assert response.status_code == 200
@@ -600,8 +599,7 @@ class TestMessages:
                         "all": True,
                     },
                     headers={
-                        "Authorization":
-                            f"Bearer {_user_with_msgs.access_token}"
+                        "Authorization": f"Bearer {_user_with_msgs.access_token}"
                     },
                 )
             assert response.status_code == 200

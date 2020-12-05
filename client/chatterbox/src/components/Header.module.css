@@ -1,10 +1,12 @@
 .navbar {
-    background-color: var(--color-primary);
+  background-color: var(--color-primary);
 }
-.brand, .navLink, .navDropdown > a {
-    color: var(--color-secondary) !important;
+.brand,
+.navLink,
+.navDropdown > a {
+  color: var(--color-secondary) !important;
 }
 .brand {
-    font-family: Helvetica;
-    font-weight: bold;
+  font-family: Helvetica;
+  font-weight: bold;
 }

@@ -1,15 +1,15 @@
 .container .row {
-    padding-bottom: 5px;
+  padding-bottom: 5px;
 }
 .container .inputRow {
-    height: 65px;
+  height: 65px;
 }
 .buttonColumn {
-    display:flex;
+  display: flex;
 }
 .button {
-    flex: 1;
+  flex: 1;
 }
 .headingColumn {
-    text-align: center;
+  text-align: center;
 }

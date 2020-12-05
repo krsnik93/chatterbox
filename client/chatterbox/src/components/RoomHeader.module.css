@@ -1,5 +1,5 @@
 .roomName {
-    width: 30ch;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
