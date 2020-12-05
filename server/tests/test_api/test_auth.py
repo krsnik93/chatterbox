@@ -22,7 +22,7 @@ def test_signup_success(app):
     assert decode_token(response.json["accessToken"])["type"] == "access"
     assert decode_token(response.json["refreshToken"])["type"] == "refresh"
 
-    user = User.query.all().pop()
+    user = User.query.one()
     assert user.username == "test_username"
     assert user.email == "test_email@domain.com"
     assert Bcrypt().check_password_hash(user.password, "test_password")

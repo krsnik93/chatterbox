@@ -12,7 +12,8 @@ from webargs.flaskparser import use_args
 from .database import db, session_scope
 from .extensions import bcrypt, jwt
 from .models import Membership, Message, MessageSeen, Room, User
-from .schemas import MessageSchema, MessageSeenSchema, RoomSchema, UserSchema
+from .schemas import (MembershipSchema, MessageSchema, MessageSeenSchema,
+                      RoomSchema, UserSchema)
 
 api_blueprint = Blueprint("api", __name__)
 api = Api(api_blueprint)
@@ -305,8 +306,12 @@ class Memberships(Resource):
 
         with session_scope() as session:
             session.add_all(memberships)
+            session.flush()
+            memberships = MembershipSchema(many=True).dump(memberships)
 
-        return make_response(jsonify(message="Memberships added."), 200)
+        return make_response(
+            jsonify(message="Memberships added.", memberships=memberships), 200
+        )
 
     @jwt_required
     def delete(self, user_id, room_id):

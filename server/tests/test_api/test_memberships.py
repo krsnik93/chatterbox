@@ -25,7 +25,7 @@ def _user_with_rooms():
     with session_scope() as session:
         session.add_all([user] + rooms + memberships)
 
-    user = User.query.all().pop()
+    user = User.query.one()
     user.access_token = create_access_token(user.id)
     yield user
 
@@ -70,6 +70,9 @@ def test_post_success_with_ids(app, _user_with_rooms):
         )
     assert response.status_code == 200
     assert response.json["message"] == "Memberships added."
+    assert len(response.json["memberships"]) == 1
+    assert response.json["memberships"][0]["room_id"] == 1
+    assert response.json["memberships"][0]["user_id"] == 2
 
 
 def test_post_success_with_usernames(app, _user_with_rooms):
@@ -99,6 +102,9 @@ def test_post_success_with_usernames(app, _user_with_rooms):
         )
     assert response.status_code == 200
     assert response.json["message"] == "Memberships added."
+    assert len(response.json["memberships"]) == 1
+    assert response.json["memberships"][0]["room_id"] == 1
+    assert response.json["memberships"][0]["user_id"] == 3
 
 
 def test_post_fail_creator_not_member(app, _user_with_rooms):

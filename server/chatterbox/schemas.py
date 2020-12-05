@@ -19,6 +19,7 @@ class RoomSchema(marshmallow.SQLAlchemyAutoSchema):
 class MembershipSchema(marshmallow.SQLAlchemyAutoSchema):
     class Meta:
         model = Membership
+        include_fk = True
 
 
 class MessageSchema(marshmallow.SQLAlchemyAutoSchema):

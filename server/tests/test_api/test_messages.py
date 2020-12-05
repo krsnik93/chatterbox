@@ -41,7 +41,7 @@ def _user_with_msgs(app):
     with session_scope() as session:
         session.add_all([user] + rooms + memberships + messages)
 
-    user = User.query.all().pop()
+    user = User.query.one()
     user.access_token = create_access_token(user.id)
     with session_scope() as session:
         session.expunge(user)

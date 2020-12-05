@@ -25,7 +25,7 @@ def _user_with_rooms():
     with session_scope() as session:
         session.add_all([user] + rooms + memberships)
 
-    user = User.query.all().pop()
+    user = User.query.one()
     user.access_token = create_access_token(user.id)
     yield user
 
