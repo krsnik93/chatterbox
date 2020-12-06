@@ -8,7 +8,14 @@ import store from "../../redux/store";
 import { api } from "../../axios";
 
 test("fires request on correct user credentials", async () => {
-  const spyPost = jest.spyOn(api, "post").mockResolvedValue({ data: {} });
+  const spyPost = jest.spyOn(api, "post").mockResolvedValue({
+    data: {
+      user: "",
+      accessToken: "",
+      refreshToken: "",
+    },
+  });
+
   render(
     <Provider store={store}>
       <LoginForm />
