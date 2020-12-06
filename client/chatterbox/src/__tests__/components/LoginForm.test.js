@@ -5,15 +5,10 @@ import userEvent from "@testing-library/user-event";
 
 import LoginForm from "../../components/LoginForm";
 import store from "../../redux/store";
-
-jest.mock("../../axios", () => ({
-  api: {
-    post: jest.fn().mockResolvedValue({ data: {} }),
-  },
-}));
 import { api } from "../../axios";
 
 test("fires request on correct user credentials", async () => {
+  const spyPost = jest.spyOn(api, "post").mockResolvedValue({ data: {} });
   render(
     <Provider store={store}>
       <LoginForm />
