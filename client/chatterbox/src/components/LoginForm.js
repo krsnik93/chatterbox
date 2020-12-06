@@ -63,6 +63,7 @@ function LoginForm(props) {
               <Form.Control
                 name="username"
                 type="text"
+                aria-label="username"
                 placeholder="Enter Username..."
                 ref={register({
                   required: "Username is required.",
@@ -92,6 +93,7 @@ function LoginForm(props) {
                 type="password"
                 name="password"
                 placeholder="Enter Password..."
+                aria-label="password"
                 ref={register({
                   required: "Password is required.",
                   minLength: {
@@ -115,7 +117,12 @@ function LoginForm(props) {
         </Row>
         <Row className={styles.row}>
           <Col className={styles.buttonColumn}>
-            <Button type="submit" variant="success" className={styles.button}>
+            <Button
+              type="submit"
+              name="login"
+              variant="success"
+              className={styles.button}
+            >
               Login
             </Button>
           </Col>

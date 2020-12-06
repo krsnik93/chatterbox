@@ -7,36 +7,36 @@ export const api = axios.create({
   baseURL: "http://localhost:5000",
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const accessToken = store.getState().userReducer.tokens.accessToken;
-    if (accessToken) {
-      config.headers["Authorization"] = "Bearer " + accessToken;
-    }
-    config.headers["Content-Type"] = "application/json";
-    return config;
-  },
-  (error) => {
-    Promise.reject(error);
-  }
-);
+//api.interceptors.request.use(
+//  (config) => {
+//    const accessToken = store.getState().userReducer.tokens.accessToken;
+//    if (accessToken) {
+//      config.headers["Authorization"] = "Bearer " + accessToken;
+//    }
+//    config.headers["Content-Type"] = "application/json";
+//    return config;
+//  },
+//  (error) => {
+//    Promise.reject(error);
+//  }
+//);
 
 /*
 https://www.techynovice.com/setting-up-JWT-token-refresh-mechanism-with-axios/
 */
-api.interceptors.response.use(
-  function (response) {
-    // If the request succeeds, we don't have to do anything and just return the response
-    return response;
-  },
-  function (error) {
-    if (isTokenExpiredError(error)) {
-      return resetTokenAndReattemptRequest(error);
-    }
-    // If the error is due to other reasons, we just throw it back to axios
-    return Promise.reject(error);
-  }
-);
+//api.interceptors.response.use(
+//  function (response) {
+//    // If the request succeeds, we don't have to do anything and just return the response
+//    return response;
+//  },
+//  function (error) {
+//    if (isTokenExpiredError(error)) {
+//      return resetTokenAndReattemptRequest(error);
+//    }
+//    // If the error is due to other reasons, we just throw it back to axios
+//    return Promise.reject(error);
+//  }
+//);
 function isTokenExpiredError(error) {
   return (
     error?.response?.status === 401 &&

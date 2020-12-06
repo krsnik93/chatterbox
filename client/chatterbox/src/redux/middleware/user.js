@@ -25,7 +25,6 @@ export function loginUser(username, password) {
         const tokens = { accessToken, refreshToken };
         dispatch(authUserSuccess(user, tokens));
         dispatch(formLoginSuccess());
-        return { user, tokens };
       })
       .catch((error) => {
         dispatch(authUserFailure(error.message));
@@ -48,7 +47,6 @@ export function signUpUser(username, email, password) {
         const tokens = { accessToken, refreshToken };
         dispatch(authUserSuccess(user, tokens));
         dispatch(formSignUpSuccess());
-        return { user, tokens };
       })
       .catch((error) => {
         dispatch(authUserFailure(error.message));
