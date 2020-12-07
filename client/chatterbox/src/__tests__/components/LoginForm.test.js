@@ -65,6 +65,36 @@ describe("password field validation", () => {
   );
 });
 
+test("renders server side errors", async () => {
+  const store = createStore(() => ({
+    formReducer: {
+      loginReducer: {
+        errors: {
+          username: {
+            message: "Username or password incorrect.",
+          },
+          password: {
+            message: "Username or password incorrect.",
+          },
+        },
+      },
+    },
+  }));
+
+  render(
+    <Provider store={store}>
+      <LoginForm />
+    </Provider>
+  );
+
+  await waitFor(() => {
+    const errorMessages = screen.getAllByText(
+      "Username or password incorrect."
+    );
+    expect(errorMessages).toHaveLength(2);
+  });
+});
+
 test("fires request on correct user credentials", async () => {
   const spyPost = jest.spyOn(api, "post").mockResolvedValue({
     data: {
