@@ -7,6 +7,64 @@ import LoginForm from "../../components/LoginForm";
 import store from "../../redux/store";
 import { api } from "../../axios";
 
+describe("username field validation", () => {
+  test.each`
+    testCase       | username             | errorMessage
+    ${"missing"}   | ${""}                | ${"Username is required."}
+    ${"too short"} | ${"usr"}             | ${"Username has to have at least 8 characters."}
+    ${"too long"}  | ${"usr".repeat(200)} | ${"Username has to have at most 128 characters."}
+  `(
+    "validation fails if username $testCase",
+    async ({ testCase, username, errorMessage }) => {
+      render(
+        <Provider store={store}>
+          <LoginForm />
+        </Provider>
+      );
+
+      const usernameField = screen.getByLabelText("username");
+      userEvent.click(usernameField);
+      userEvent.type(usernameField, username);
+      const loginButton = screen.getByRole("button", { name: /login/i });
+      userEvent.click(loginButton);
+
+      await waitFor(() => {
+        const usernameValidationMessage = screen.getByText(errorMessage);
+        expect(usernameValidationMessage).toBeTruthy();
+      });
+    }
+  );
+});
+
+describe("password field validation", () => {
+  test.each`
+    testCase       | password              | errorMessage
+    ${"missing"}   | ${""}                 | ${"Password is required."}
+    ${"too short"} | ${"pass"}             | ${"Password has to have at least 8 characters."}
+    ${"too long"}  | ${"pass".repeat(200)} | ${"Password has to have at most 128 characters."}
+  `(
+    "validation fails if password $testCase",
+    async ({ testCase, password, errorMessage }) => {
+      render(
+        <Provider store={store}>
+          <LoginForm />
+        </Provider>
+      );
+
+      const passwordField = screen.getByLabelText("password");
+      userEvent.click(passwordField);
+      userEvent.type(passwordField, password);
+      const loginButton = screen.getByRole("button", { name: /login/i });
+      userEvent.click(loginButton);
+
+      await waitFor(() => {
+        const passwordValidationMessage = screen.getByText(errorMessage);
+        expect(passwordValidationMessage).toBeTruthy();
+      });
+    }
+  );
+});
+
 test("fires request on correct user credentials", async () => {
   const spyPost = jest.spyOn(api, "post").mockResolvedValue({
     data: {
