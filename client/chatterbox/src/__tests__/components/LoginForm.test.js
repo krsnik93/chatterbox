@@ -65,6 +65,71 @@ describe("password field validation", () => {
   );
 });
 
+test("validates on change after submit", async () => {
+  render(
+    <Provider store={store}>
+      <LoginForm />
+    </Provider>
+  );
+
+  const passwordField = screen.getByLabelText("password");
+  const usernameField = screen.getByLabelText("username");
+
+  userEvent.click(usernameField);
+  userEvent.type(usernameField, "short");
+
+  const loginButton = screen.getByRole("button", { name: /login/i });
+  userEvent.click(loginButton);
+
+  await waitFor(() => {
+    const usernameMessage = screen.getByText(
+      "Username has to have at least 8 characters."
+    );
+    const passwordMessage = screen.getByText("Password is required.");
+    expect(usernameMessage).toBeTruthy();
+    expect(passwordMessage).toBeTruthy();
+  });
+
+  userEvent.type(passwordField, "p");
+
+  await waitFor(() => {
+    const usernameMessage = screen.getByText(
+      "Username has to have at least 8 characters."
+    );
+    const passwordMessage = screen.getByText(
+      "Password has to have at least 8 characters."
+    );
+    expect(usernameMessage).toBeTruthy();
+    expect(passwordMessage).toBeTruthy();
+  });
+
+  userEvent.type(usernameField, "username continuation");
+
+  await waitFor(() => {
+    const usernameMessage = screen.queryByText(
+      "Username has to have at least 8 characters."
+    );
+    const passwordMessage = screen.getByText(
+      "Password has to have at least 8 characters."
+    );
+    expect(usernameMessage).toBeFalsy();
+    expect(passwordMessage).toBeTruthy();
+  });
+
+  userEvent.type(passwordField, "password continuation");
+
+  await waitFor(() => {
+    const usernameMessage = screen.queryByText(
+      "Username has to have at least 8 characters."
+    );
+    const passwordMessage = screen.queryByText(
+      "Password has to have at least 8 characters."
+    );
+    expect(usernameMessage).toBeFalsy();
+    expect(passwordMessage).toBeFalsy();
+  });
+});
+
 test("renders server side errors", async () => {
   const store = createStore(() => ({
     formReducer: {
